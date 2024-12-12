@@ -1,7 +1,7 @@
 ﻿
 type TodoType = "Sharding" | "Styling" | "Feature" | "BugFix" | "Limits" | "Other";
 
-type TeamMember = "Marcin" | "Danielle" | "Kwiato" | "Damian" | "Matteo" | "ANY";
+type TeamMember = "Marcin" | "Danielle" | "Kwiato" | "Damian" | "Matteo" | "Maksym" | "ANY";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function todo(feature: TodoType, member: TeamMember, message: string, issueUrl?: string) {

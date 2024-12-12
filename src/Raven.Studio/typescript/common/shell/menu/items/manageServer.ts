@@ -9,6 +9,7 @@ import StudioGlobalConfiguration from "components/pages/resources/manageServer/s
 import GatherDebugInfo from "components/pages/resources/manageServer/gatherDebugInfo/GatherDebugInfo";
 import ServerWideCustomAnalyzers from "components/pages/resources/manageServer/serverWideAnalyzers/ServerWideCustomAnalyzers";
 import ServerWideCustomSorters from "components/pages/resources/manageServer/serverWideSorters/ServerWideCustomSorters";
+import { ServerSettings } from "components/pages/resources/manageServer/serverSettings/ServerSettings";
 
 export = getManageServerMenuItem;
 
@@ -80,7 +81,7 @@ function getManageServerMenuItem() {
         }),
         new leafMenuItem({
             route: 'admin/settings/serverSettings',
-            moduleId: require("viewmodels/manage/serverSettings"),
+            moduleId: bridgeToReact(ServerSettings, "nonShardedView"),
             title: 'Server Settings',
             nav: true,
             css: 'icon-server-settings',
