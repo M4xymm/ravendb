@@ -28,7 +28,11 @@ export const DocumentIdentitiesStory: StoryObj<DocumentIdentitiesStoryArgs> = {
 
         databasesService.withIdentities(args.identities);
 
-        return <DocumentIdentities />;
+        return (
+            <div className="h-100">
+                <DocumentIdentities />
+            </div>
+        );
     },
     argTypes: {
         databaseAccess: databaseAccessArgType,
