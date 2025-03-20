@@ -14,6 +14,7 @@ import { conflictResolutionSlice } from "./pages/database/settings/conflictResol
 import { connectionStringsSlice } from "./pages/database/settings/connectionStrings/store/connectionStringsSlice";
 import { connectionStringsUpdateUrlMiddleware } from "./pages/database/settings/connectionStrings/store/connectionStringsMiddleware";
 import { certificatesSlice } from "components/pages/resources/manageServer/certificates/store/certificatesSlice";
+import { setupWizardSlice } from "./setupWizard/store/setupWizardSlice";
 
 const listenerMiddleware = createListenerMiddleware({
     extra: () => services,
@@ -33,6 +34,7 @@ export function createStoreConfiguration() {
             conflictResolution: conflictResolutionSlice.reducer,
             connectionStrings: connectionStringsSlice.reducer,
             certificates: certificatesSlice.reducer,
+            setupWizard: setupWizardSlice.reducer,
         },
         middleware: (getDefaultMiddleware) =>
             getDefaultMiddleware({
