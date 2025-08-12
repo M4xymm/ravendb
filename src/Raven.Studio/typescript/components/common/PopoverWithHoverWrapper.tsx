@@ -15,7 +15,6 @@ export default function PopoverWithHoverWrapper({
     children,
     message,
     isInPopoverBody = true,
-    inline = true,
     targetClassname,
     targetStyle,
     ...rest
@@ -23,7 +22,7 @@ export default function PopoverWithHoverWrapper({
     const [target, setTarget] = useState<HTMLElement>();
     return (
         <>
-            <div style={targetStyle} ref={setTarget} className={classNames(targetClassname, { "d-inline-block": inline })}>
+            <div style={targetStyle} ref={setTarget} className={classNames(targetClassname, "d-flex align-self-center")}>
                 {children}
             </div>
             {message && (

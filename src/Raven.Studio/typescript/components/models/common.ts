@@ -13,7 +13,9 @@ export type TextColor =
     | "emphasis"
     | "node"
     | "shard"
-    | "orchestrator";
+    | "orchestrator"
+    | "developer"
+    | "community";
 
 export interface loadableData<T> {
     data?: T;
