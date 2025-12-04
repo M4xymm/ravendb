@@ -237,7 +237,7 @@ function PathList({ fetchStatus, paths, pathInput, setPathInput }: PathSelectorL
     return paths.map((path) => (
         <Button key={path} variant="secondary" className="btn-link hstack gap-2" onClick={() => handleItemClick(path)}>
             <Icon icon="folder" color="info" />
-            <span className="text-info text-start text-break">{formatPathInList(path, pathInput)}</span>
+            <span className="text-info text-start text-break">{path}</span>
         </Button>
     ));
 }
@@ -268,17 +268,6 @@ function getSeparator(path: string): string {
     }
 
     return "";
-}
-
-function formatPathInList(listItemPath: string, pathInput: string): string {
-    const separator = getSeparator(pathInput);
-    const pathParts = separator ? listItemPath.split(separator) : [listItemPath];
-
-    if (pathParts.length === 1 || !pathParts[1]) {
-        return listItemPath;
-    }
-
-    return listItemPath.replace(pathInput, "").replace(separator, "");
 }
 
 function getParentPath(path: string): { canGoBack: boolean; parentDir: string } {
@@ -313,5 +302,4 @@ function getParentPath(path: string): { canGoBack: boolean; parentDir: string } 
 
 export const exportedForTesting = {
     getParentPath,
-    formatPathInList,
 };
