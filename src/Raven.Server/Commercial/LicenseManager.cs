@@ -1152,6 +1152,7 @@ namespace Raven.Server.Commercial
             var dynamicNodesDistributionCount = 0;
             var additionalAssembliesFromNuGetCount = 0;
             var revisionCompressionCount = 0;
+            var remoteAttachmentsCount = 0;
             var schemaValidationCount = 0;
 
             using (_serverStore.ContextPool.AllocateOperationContext(out TransactionOperationContext context))
@@ -1231,6 +1232,10 @@ namespace Raven.Server.Commercial
                     if (databaseRecord.AiAgents != null &&
                         databaseRecord.AiAgents.Count > 0)
                         aiAgentCount++;
+
+                    if (databaseRecord.RemoteAttachments != null &&
+                        databaseRecord.RemoteAttachments.HasDestination())
+                        remoteAttachmentsCount++;
 
                     if (databaseRecord.SchemaValidation != null &&
                         databaseRecord.SchemaValidation.Disabled == false)
@@ -1378,6 +1383,12 @@ namespace Raven.Server.Commercial
             {
                 var message = GenerateDetails(revisionCompressionCount, "Revision compression");
                 throw GenerateLicenseLimit(LimitType.DocumentsCompression, message);
+            }
+
+            if (remoteAttachmentsCount > 0 && newLicenseStatus.HasRemoteAttachments == false)
+            {
+                var  message = GenerateDetails(remoteAttachmentsCount, "Remote attachments");
+                throw GenerateLicenseLimit(LimitType.RemoteAttachments, message);
             }
 
             if (schemaValidationCount > 0 && newLicenseStatus.HasSchemaValidation == false)
@@ -1763,6 +1774,18 @@ namespace Raven.Server.Commercial
             throw GenerateLicenseLimit(LimitType.AiAgent, message);
         }
 
+        public void AssertCanUseAiAssistant()
+        {
+            if (IsValid(out var licenseLimit) == false)
+                throw licenseLimit;
+
+            if (LicenseStatus.HasAiAssistant)
+                return;
+
+            const string message = "Your current license doesn't include the AI Assistant feature";
+            throw GenerateLicenseLimit(LimitType.AiAssistant, message);
+        }
+
         public void AssertCanAddConcurrentDataSubscriptions()
         {
             if (IsValid(out var licenseLimit) == false)
@@ -1813,6 +1836,18 @@ namespace Raven.Server.Commercial
 
             const string details = "Your current license doesn't include the read-only certificates feature";
             throw GenerateLicenseLimit(LimitType.ReadOnlyCertificates, details);
+        }
+
+        public void AssertCanAddRemoteAttachments()
+        {
+            if (IsValid(out var licenseLimit) == false)
+                throw licenseLimit;
+
+            if (LicenseStatus.HasRemoteAttachments)
+                return;
+
+            const string details = "Your current license doesn't include the remote attachments feature";
+            throw GenerateLicenseLimit(LimitType.RemoteAttachments, details);
         }
 
         public void AssertCanAddSchemaValidation()

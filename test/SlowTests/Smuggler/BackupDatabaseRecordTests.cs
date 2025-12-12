@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 using FastTests;
 using FastTests.Utils;
 using Raven.Client.Documents;
+using Raven.Client.Documents.Attachments;
 using Raven.Client.Documents.Indexes.Analysis;
 using Raven.Client.Documents.Indexes.Vector;
 using Raven.Client.Documents.Operations;
 using Raven.Client.Documents.Operations.AI;
+using Raven.Client.Documents.Operations.Attachments.Remote;
 using Raven.Client.Documents.Operations.Backups;
 using Raven.Client.Documents.Operations.Configuration;
 using Raven.Client.Documents.Operations.ConnectionStrings;
@@ -256,6 +258,26 @@ namespace SlowTests.Smuggler
                         AllowEtlOnNonEncryptedChannel = true
                     };
 
+                    await store1.Maintenance.SendAsync(new ConfigureRemoteAttachmentsOperation(new RemoteAttachmentsConfiguration()
+                    {
+                        Destinations = new Dictionary<string, RemoteAttachmentsDestinationConfiguration>()
+                        {
+                            {
+                                "dummy-identifier", new RemoteAttachmentsDestinationConfiguration()
+                                {
+                                    S3Settings = new RemoteAttachmentsS3Settings()
+                                    {
+                                        AwsAccessKey = "DummyAccessKey",
+                                        RemoteFolderName = "remote-attachments",
+                                        BucketName = "dummy-bucket",
+                                    },
+                                    Disabled = false,
+                                }
+                            }
+                        },
+                        CheckFrequencyInSec = 1000,
+                    }));
+
                     embeddingsGenerationConfiguration.Identifier = embeddingsGenerationConfiguration.GenerateIdentifier();
                     await store1.Maintenance.SendAsync(new PutConnectionStringOperation<AiConnectionString>(aiConnectionString));
                     await store1.Maintenance.SendAsync(new AddEmbeddingsGenerationOperation(embeddingsGenerationConfiguration));
@@ -271,7 +293,7 @@ namespace SlowTests.Smuggler
                         }
                     };
                     await store1.Maintenance.SendAsync(new ConfigureSchemaValidationOperation(configuration));
-                    
+
                     var operation = await store1.Smuggler.ExportAsync(new DatabaseSmugglerExportOptions(), file);
                     await operation.WaitForCompletionAsync(TimeSpan.FromMinutes(1));
 
@@ -351,11 +373,19 @@ namespace SlowTests.Smuggler
                     Assert.Equal("aiconnection", record.EmbeddingsGenerations.First().ConnectionStringName);
                     Assert.Equal(true, record.EmbeddingsGenerations.First().AllowEtlOnNonEncryptedChannel);
                     Assert.Equal(true, record.EmbeddingsGenerations.First().Disabled);
-                    
+
+                    Assert.NotNull(record.RemoteAttachments);
+                    Assert.Equal(1000, record.RemoteAttachments.CheckFrequencyInSec);
+                    Assert.NotNull(record.RemoteAttachments.Destinations.First().Value.S3Settings);
+                    Assert.Equal("DummyAccessKey", record.RemoteAttachments.Destinations.First().Value.S3Settings.AwsAccessKey);
+                    Assert.Equal("remote-attachments", record.RemoteAttachments.Destinations.First().Value.S3Settings.RemoteFolderName);
+                    Assert.Equal("dummy-bucket", record.RemoteAttachments.Destinations.First().Value.S3Settings.BucketName);
+
+
                     Assert.NotNull(record.SchemaValidation);
                     Assert.False(record.SchemaValidation.Disabled);
                     Assert.True(record.SchemaValidation.ValidatorsPerCollection.ContainsKey("TestObjs"));
-                    Assert.NotNull(record.SchemaValidation.ValidatorsPerCollection["TestObjs"].Schema);                    
+                    Assert.NotNull(record.SchemaValidation.ValidatorsPerCollection["TestObjs"].Schema);
                 }
             }
             finally
@@ -1023,7 +1053,7 @@ namespace SlowTests.Smuggler
                             { "TestObjs", new SchemaDefinition { Schema = "{\"properties\":{\"Prop\":{\"maxLength\":3}}}" } }
                         }
                     }));
-                        
+
                     await store2.Maintenance.SendAsync(new ConfigureSchemaValidationOperation(new SchemaValidationConfiguration
                     {
                         ValidatorsPerCollection = new Dictionary<string, SchemaDefinition>
@@ -1031,7 +1061,7 @@ namespace SlowTests.Smuggler
                             { "TestObj2s", new SchemaDefinition { Schema = "{\"properties\":{\"Prop2\":{\"maxLength\":3}}}" } }
                         }
                     }));
-                    
+
                     var operation = await store1.Smuggler.ExportAsync(new DatabaseSmugglerExportOptions(), file);
                     await operation.WaitForCompletionAsync(TimeSpan.FromMinutes(1));
 
@@ -1351,6 +1381,26 @@ namespace SlowTests.Smuggler
                 // add data archival configuration
                 await DataArchivalHelper.SetupDataArchival(store, Server.ServerStore, new DataArchivalConfiguration { Disabled = false, ArchiveFrequencyInSec = 100 });
 
+                await store.Maintenance.SendAsync(new ConfigureRemoteAttachmentsOperation(new RemoteAttachmentsConfiguration()
+                {
+                    Destinations = new Dictionary<string, RemoteAttachmentsDestinationConfiguration>()
+                    {
+                        {
+                            "dummy-identifier", new RemoteAttachmentsDestinationConfiguration()
+                            {
+                                S3Settings = new RemoteAttachmentsS3Settings()
+                                {
+                                    AwsAccessKey = "DummyAccessKey",
+                                    RemoteFolderName = "remote-attachments",
+                                    BucketName = "dummy-bucket",
+                                },
+                                Disabled = false,
+                            }
+                        }
+                    },
+                    CheckFrequencyInSec = 1000,
+                }));
+
                 //add queue sink configuration
                 store.Maintenance.Send(new PutConnectionStringOperation<QueueConnectionString>(
                     new QueueConnectionString
@@ -1384,7 +1434,7 @@ namespace SlowTests.Smuggler
                     };
                     await store.Maintenance.SendAsync(new ConfigureSchemaValidationOperation(configuration));
                 }
-                
+
                 using (var session = store.OpenAsyncSession())
                 {
                     await session.StoreAsync(new User
@@ -1489,6 +1539,13 @@ namespace SlowTests.Smuggler
                     Assert.NotNull(record.DataArchival);
                     Assert.False(record.DataArchival.Disabled);
 
+                    Assert.NotNull(record.RemoteAttachments);
+                    Assert.Equal(1000, record.RemoteAttachments.CheckFrequencyInSec);
+                    Assert.NotNull(record.RemoteAttachments.Destinations.First().Value.S3Settings);
+                    Assert.Equal("DummyAccessKey", record.RemoteAttachments.Destinations.First().Value.S3Settings.AwsAccessKey);
+                    Assert.Equal("remote-attachments", record.RemoteAttachments.Destinations.First().Value.S3Settings.RemoteFolderName);
+                    Assert.Equal("dummy-bucket", record.RemoteAttachments.Destinations.First().Value.S3Settings.BucketName);
+
                     Assert.NotNull(record.QueueSinks);
                     Assert.Equal(1, record.QueueSinks.Count);
                     Assert.False(record.QueueSinks.First().Disabled);
@@ -1506,7 +1563,7 @@ namespace SlowTests.Smuggler
                     Assert.False(record.EmbeddingsGenerations.First().Disabled);
                     Assert.Equal("generate-embeddings", record.EmbeddingsGenerations.First().Name);
                     Assert.Equal("aiconnection", record.EmbeddingsGenerations.First().ConnectionStringName);
-                    
+
                     Assert.NotNull(record.SchemaValidation);
                     Assert.False(record.SchemaValidation.Disabled);
                     Assert.True(record.SchemaValidation.ValidatorsPerCollection.ContainsKey("TestObjs"));
