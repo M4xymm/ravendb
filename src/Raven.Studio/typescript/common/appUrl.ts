@@ -112,6 +112,7 @@ class appUrl {
         connectionStrings: ko.pureComputed(() => appUrl.forConnectionStrings(appUrl.currentDatabase())),
         conflictResolution: ko.pureComputed(() => appUrl.forConflictResolution(appUrl.currentDatabase())),
         revisionsBinCleaner: ko.pureComputed(() => appUrl.forRevisionsBinCleaner(appUrl.currentDatabase())),
+        tasksError: ko.pureComputed(() => appUrl.forTasksErrors(appUrl.currentDatabase())),
 
         statusStorageReport: ko.pureComputed(() => appUrl.forStatusStorageReport(appUrl.currentDatabase())),
         statusBucketsReport: ko.pureComputed(() => appUrl.forStatusBucketsReport(appUrl.currentDatabase())),
@@ -420,6 +421,10 @@ class appUrl {
     
     static forRevisionsBinCleaner(db: database | string): string {
         return "#databases/settings/revisionsBinCleaner?" + appUrl.getEncodedDbPart(db);
+    }
+    
+    static forTasksErrors(db: database): string {
+        return "#databases/tasks/tasksErrors?" + appUrl.getEncodedDbPart(db);
     }
 
     static forConnectionStrings(db: database | string, type?: StudioEtlType, name?: string): string {

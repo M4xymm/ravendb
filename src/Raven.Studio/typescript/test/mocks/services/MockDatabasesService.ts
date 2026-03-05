@@ -196,4 +196,12 @@ export default class MockDatabasesService extends AutoMockService<DatabasesServi
             DatabasesStubs.revisionsBinCleaner()
         );
     }
+
+    withEtlErrors(dto?: MockedValue<EtlErrors[]>) {
+        return this.mockResolvedValue(this.mocks.getEtlErrors, dto, DatabasesStubs.etlErrors());
+    }
+
+    withEtlStats(dto?: MockedValue<EtlTaskStats[]>) {
+        return this.mockResolvedValue(this.mocks.getEtlStats, dto, DatabasesStubs.etlStats());
+    }
 }

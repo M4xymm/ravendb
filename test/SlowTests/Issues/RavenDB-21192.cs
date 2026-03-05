@@ -323,9 +323,10 @@ public class RavenDB_21192 : RavenTestBase
                 Assert.Empty(secondTaskErrors.ItemErrors);
                 
                 var thirdTaskErrors = resultsObjectList.Single(x => x.ProcessName == $"{etlName2}/{transformationName3}");
-                
+
                 Assert.Contains(thirdTaskErrors.ProcessErrors, x => x.AffectedDocumentsCount == 5);
                 Assert.Empty(thirdTaskErrors.ItemErrors);
+                WaitForUserToContinueTheTest(src);
             }
         }
     }
@@ -418,6 +419,7 @@ public class RavenDB_21192 : RavenTestBase
                 
                 Assert.Contains(thirdTaskErrors.ProcessErrors, x => x.AffectedDocumentsCount == 5);
                 Assert.Empty(thirdTaskErrors.ItemErrors);
+                WaitForUserToContinueTheTest(src);
             }
         }
     }
@@ -556,7 +558,8 @@ public class RavenDB_21192 : RavenTestBase
             etlDone.Wait(TimeSpan.FromSeconds(10));
             
             etlStats = GetEtlStats(src, $"{etlName1}/{transformationName1}");
-            
+
+            WaitForUserToContinueTheTest(src);
             Assert.Equal(950, etlStats.LoadSuccesses);
             Assert.Equal(1020, etlStats.TransformationErrors);
 

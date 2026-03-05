@@ -73,17 +73,26 @@ export default function VirtualTable<T>(props: VirtualTableProps<T> & ClassNameP
                             }}
                             className={classNames({ "is-odd": virtualRow.index % 2 !== 0 })}
                         >
-                            {row.getVisibleCells().map((cell) => (
-                                <td
-                                    key={cell.id}
-                                    style={{
-                                        width: cell.column.getSize(),
-                                    }}
-                                    className="align-content-center"
-                                >
-                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                </td>
-                            ))}
+                            {row.getVisibleCells().map((cell) => {
+                                const isPinned = cell.column.getIsPinned();
+                                return (
+                                    <td
+                                        key={cell.id}
+                                        style={{
+                                            width: cell.column.getSize(),
+                                            ...(isPinned
+                                                ? {
+                                                      position: "sticky",
+                                                      left: cell.column.getStart("left"),
+                                                  }
+                                                : {}),
+                                        }}
+                                        className={classNames("align-content-center", { "col-pinned": isPinned })}
+                                    >
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </td>
+                                );
+                            })}
                         </tr>
                     );
                 })}

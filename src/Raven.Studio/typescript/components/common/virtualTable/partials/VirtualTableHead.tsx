@@ -12,31 +12,41 @@ export default function VirtualTableHead<T>({ table }: VirtualTableHeadProps<T>)
         <thead>
             {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id} className="d-flex">
-                    {headerGroup.headers.map((header) => (
-                        <th
-                            key={header.id}
-                            className="position-relative align-content-center"
-                            style={{ width: header.getSize() }}
-                        >
-                            <div
-                                className="position-relative d-flex align-items-center justify-content-between"
-                                title={getHeaderTitle(header.column)}
+                    {headerGroup.headers.map((header) => {
+                        const isPinned = header.column.getIsPinned();
+                        return (
+                            <th
+                                key={header.id}
+                                className={classNames("position-relative align-content-center", {
+                                    "col-pinned": isPinned,
+                                })}
+                                style={{
+                                    width: header.getSize(),
+                                    ...(isPinned
+                                        ? { position: "sticky", left: header.column.getStart("left") }
+                                        : {}),
+                                }}
                             >
-                                {flexRender(header.column.columnDef.header, header.getContext())}
-
-                                <ColumnSettings column={header.column} />
-                            </div>
-                            {header.column.getCanResize() && (
                                 <div
-                                    className={classNames("resizer", {
-                                        "is-resizing": header.column.getIsResizing(),
-                                    })}
-                                    onMouseDown={header.getResizeHandler()}
-                                    onTouchStart={header.getResizeHandler()}
-                                ></div>
-                            )}
-                        </th>
-                    ))}
+                                    className="position-relative d-flex align-items-center justify-content-between"
+                                    title={getHeaderTitle(header.column)}
+                                >
+                                    {flexRender(header.column.columnDef.header, header.getContext())}
+
+                                    <ColumnSettings column={header.column} />
+                                </div>
+                                {header.column.getCanResize() && (
+                                    <div
+                                        className={classNames("resizer", {
+                                            "is-resizing": header.column.getIsResizing(),
+                                        })}
+                                        onMouseDown={header.getResizeHandler()}
+                                        onTouchStart={header.getResizeHandler()}
+                                    ></div>
+                                )}
+                            </th>
+                        );
+                    })}
                 </tr>
             ))}
         </thead>

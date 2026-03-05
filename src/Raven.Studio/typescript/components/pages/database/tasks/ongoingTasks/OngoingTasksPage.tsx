@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useReducer, useState } from "react";
+﻿import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { useServices } from "hooks/useServices";
 import { OngoingTasksState, ongoingTasksReducer, ongoingTasksReducerInitializer } from "./partials/OngoingTasksReducer";
 import { ExternalReplicationPanel } from "./panels/ExternalReplicationPanel";
@@ -65,11 +65,12 @@ import { OngoingTasksHeader } from "components/pages/database/tasks/ongoingTasks
 import { InternalReplicationPanel } from "./panels/InternalReplicationPanel";
 import DatabaseUtils from "components/utils/DatabaseUtils";
 import recentError from "common/notifications/models/recentError";
+import { useAsync } from "react-async-hook";
 
 export function OngoingTasksPage() {
     const db = useAppSelector(databaseSelectors.activeDatabase);
 
-    const { tasksService } = useServices();
+    const { tasksService, databasesService } = useServices();
     const [tasks, dispatch] = useReducer(ongoingTasksReducer, db, ongoingTasksReducerInitializer);
 
     const { value: internalReplicationProgressEnabled, setTrue: startTrackingInternalReplicationProgress } =
@@ -81,6 +82,21 @@ export function OngoingTasksPage() {
         searchText: "",
         types: [],
     });
+
+    const fetchEtlErrors = useAsync(async () => {
+        const locations = DatabaseUtils.getLocations(db);
+
+        const locationsEtlErrors = [];
+        for (const location of locations) {
+            const errors = await databasesService.getEtlErrors(db.name, location);
+
+            locationsEtlErrors.push(errors);
+        }
+
+        return locationsEtlErrors;
+    }, []);
+
+    console.log("maxym fetchEtlErrors", fetchEtlErrors.result);
 
     const upgradeLicenseLink = useRavenLink({ hash: "FLDLO4", isDocs: false });
 
@@ -209,6 +225,19 @@ export function OngoingTasksPage() {
         ...rabbitMqEtls,
         ...azureQueueStorageEtls,
     ];
+    
+    useAsync(async() => {
+        const locations = DatabaseUtils.getLocations(db);
+
+        const locationsEtlErrors = [];
+        for (const location of locations) {
+            const errors = await databasesService.getEtlErrors(db.name, location);
+            
+            locationsEtlErrors.push(errors);
+        }
+
+        return locationsEtlErrors;
+    }, []);
 
     const sinks = [...kafkaSinks, ...rabbitMqSinks];
 

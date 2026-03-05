@@ -1086,3 +1086,19 @@ interface TrafficWatchPostgresChange extends Raven.Client.Documents.Changes.Traf
     Source: string;
     Query: string;
 }
+
+interface EtlErrors {
+    ProcessName: string;
+    ProcessErrors: Raven.Server.Documents.ETL.EtlProcessError[];
+    ItemErrors: Raven.Server.Documents.ETL.EtlItemError[];
+}
+
+interface EtlProcessTransformationStats {
+    Statistics: Raven.Server.Documents.ETL.EtlProcessStatistics;
+    TransformationName: string;
+}
+
+interface EtlTaskStats {
+    Stats: EtlProcessTransformationStats[];
+    TaskName: string;
+}

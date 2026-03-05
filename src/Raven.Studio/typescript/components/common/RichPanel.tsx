@@ -121,18 +121,19 @@ interface RichPanelDetailItemProps {
     size?: string;
     children: ReactNode | ReactNode[];
     className?: string;
+    childrenClassName?: string;
     label?: ReactNode | ReactNode[];
     title?: string;
     ref?: LegacyRef<HTMLDivElement>;
 }
 
 function RichPanelDetailItemInternal(props: RichPanelDetailItemProps, ref: ForwardedRef<HTMLDivElement>) {
-    const { children, className, size, label, ...rest } = props;
+    const { children, className, size, label, childrenClassName, ...rest } = props;
     const panelClass = size ? "rich-panel-detail-item" + "-" + size : "rich-panel-detail-item";
     return (
         <div className={classNames(panelClass, className)} ref={ref} {...rest}>
             {label && <div className="small-label">{label}</div>}
-            <div className="detail-item-content">{children}</div>
+            <div className={classNames("detail-item-content", childrenClassName)}>{children}</div>
         </div>
     );
 }

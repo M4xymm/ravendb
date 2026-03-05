@@ -70,6 +70,9 @@ import saveRevisionsBinCleanerConfigurationCommand from "commands/database/setti
 import deleteDocumentsCommand from "commands/database/documents/deleteDocumentsCommand";
 import deleteCollectionCommand from "commands/database/documents/deleteCollectionCommand";
 import getDatabaseSettingsCommand = require("commands/database/settings/getDatabaseSettingsCommand");
+import getEtlErrorsCommand from "commands/database/tasks/getEtlErrorsCommand";
+import getEtlStatsCommand from "commands/database/tasks/getEtlStatsCommand";
+import deleteEtlErrorsCommand from "commands/database/tasks/deleteEtlErrorsCommand";
 
 export default class DatabasesService {
     async setLockMode(databaseNames: string[], newLockMode: DatabaseLockMode) {
@@ -334,5 +337,17 @@ export default class DatabasesService {
 
     async getDatabaseSettings(...args: ConstructorParameters<typeof getDatabaseSettingsCommand>) {
         return new getDatabaseSettingsCommand(...args).execute();
+    }
+
+    async getEtlErrors(...args: ConstructorParameters<typeof getEtlErrorsCommand>) {
+        return new getEtlErrorsCommand(...args).execute();
+    }
+    
+    async getEtlStats(...args: ConstructorParameters<typeof getEtlStatsCommand>) {
+        return new getEtlStatsCommand(...args).execute();
+    }
+    
+    async deleteEtlErrors(...args: ConstructorParameters<typeof deleteEtlErrorsCommand>) {
+        return new deleteEtlErrorsCommand(...args).execute();
     }
 }
