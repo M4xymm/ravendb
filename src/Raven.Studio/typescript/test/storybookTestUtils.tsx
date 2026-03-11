@@ -118,3 +118,7 @@ export const securityClearanceArgType = {
         "UnauthenticatedClients",
     ] satisfies Raven.Client.ServerWide.Operations.Certificates.SecurityClearance[],
 } as const;
+
+export type DatabaseType = "singleNode" | "cluster" | "sharded";
+
+export const databaseArgType = { control: "radio", options: ["sharded", "cluster", "singleNode"] } as const;

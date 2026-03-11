@@ -310,6 +310,7 @@ internal sealed class StudioDatabasesHandlerForGetDatabasesState : AbstractDatab
             long performanceHints = 0;
             long indexingErrors = 0;
             long documentsCount = 0;
+            long tasksErrors = 0;
             if (database != null)
             {
                 (Size data, Size tempBuffers) = database.GetSizeOnDisk();
@@ -320,6 +321,7 @@ internal sealed class StudioDatabasesHandlerForGetDatabasesState : AbstractDatab
                 performanceHints = database.NotificationCenter.GetPerformanceHintCount();
                 indexingErrors = database.IndexStore?.GetIndexes()?.Sum(index => index.GetErrorCount()) ?? 0;
                 documentsCount = database.DocumentsStorage.GetNumberOfDocuments();
+                tasksErrors = database.EtlErrorsStorage.ReadErrorsCount();
             }
             else if (databaseInfoCache.TryGet(databaseName, json =>
                      {
@@ -330,6 +332,7 @@ internal sealed class StudioDatabasesHandlerForGetDatabasesState : AbstractDatab
                          json.TryGet(nameof(PerformanceHints), out performanceHints);
                          json.TryGet(nameof(IndexingErrors), out indexingErrors);
                          json.TryGet(nameof(DocumentsCount), out documentsCount);
+                         json.TryGet(nameof(TasksErrors), out tasksErrors);
 
                          totalSize = GetSize(json, nameof(TotalSize));
                          tempBuffersSize = GetSize(json, nameof(TempBuffersSize));
@@ -351,7 +354,8 @@ internal sealed class StudioDatabasesHandlerForGetDatabasesState : AbstractDatab
                 IndexingErrors = indexingErrors,
                 DocumentsCount = documentsCount,
                 IndexingStatus = indexingStatus ?? IndexRunningStatus.Running,
-                DatabaseStatus = databaseStatus
+                DatabaseStatus = databaseStatus,
+                TasksErrors = tasksErrors
             };
 
             static Size GetSize(BlittableJsonReaderObject json, string propertyName)
