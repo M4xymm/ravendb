@@ -1,6 +1,6 @@
-﻿import React, { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+﻿import React, { useCallback, useEffect, useReducer, useState } from "react";
 import { useServices } from "hooks/useServices";
-import { OngoingTasksState, ongoingTasksReducer, ongoingTasksReducerInitializer } from "./partials/OngoingTasksReducer";
+import { ongoingTasksReducer, ongoingTasksReducerInitializer, OngoingTasksState } from "./partials/OngoingTasksReducer";
 import { ExternalReplicationPanel } from "./panels/ExternalReplicationPanel";
 import {
     OngoingTaskAzureQueueStorageEtlInfo,
@@ -34,7 +34,6 @@ import {
     ReplicationProgressProvider,
 } from "./partials/OngoingTaskProgressProviders";
 import { BaseOngoingTaskPanelProps, taskKey, useOngoingTasksOperations } from "../shared/shared";
-import EtlTaskProgress = Raven.Server.Documents.ETL.Stats.EtlTaskProgress;
 import "./OngoingTaskPage.scss";
 import etlScriptDefinitionCache from "models/database/stats/etlScriptDefinitionCache";
 import TaskUtils from "../../../../utils/TaskUtils";
@@ -59,18 +58,19 @@ import { AzureQueueStorageEtlPanel } from "components/pages/database/tasks/ongoi
 import { databaseSelectors } from "components/common/shell/databaseSliceSelectors";
 import { compareSets } from "common/typeUtils";
 import RichAlert from "components/common/RichAlert";
-import ReplicationTaskProgress = Raven.Server.Documents.Replication.Stats.ReplicationTaskProgress;
-import InternalReplicationTaskProgress = Raven.Server.Documents.Replication.Stats.InternalReplicationTaskProgress;
 import { OngoingTasksHeader } from "components/pages/database/tasks/ongoingTasks/partials/OngoingTasksHeader";
 import { InternalReplicationPanel } from "./panels/InternalReplicationPanel";
 import DatabaseUtils from "components/utils/DatabaseUtils";
 import recentError from "common/notifications/models/recentError";
 import { useAsync } from "react-async-hook";
+import EtlTaskProgress = Raven.Server.Documents.ETL.Stats.EtlTaskProgress;
+import ReplicationTaskProgress = Raven.Server.Documents.Replication.Stats.ReplicationTaskProgress;
+import InternalReplicationTaskProgress = Raven.Server.Documents.Replication.Stats.InternalReplicationTaskProgress;
 
 export function OngoingTasksPage() {
     const db = useAppSelector(databaseSelectors.activeDatabase);
 
-    const { tasksService, databasesService } = useServices();
+    const { tasksService } = useServices();
     const [tasks, dispatch] = useReducer(ongoingTasksReducer, db, ongoingTasksReducerInitializer);
 
     const { value: internalReplicationProgressEnabled, setTrue: startTrackingInternalReplicationProgress } =
@@ -83,20 +83,33 @@ export function OngoingTasksPage() {
         types: [],
     });
 
-    const fetchEtlErrors = useAsync(async () => {
+    const { result: etlStatsResult } = useAsync(async () => {
         const locations = DatabaseUtils.getLocations(db);
-
-        const locationsEtlErrors = [];
+        const results: EtlTaskStats[][] = [];
         for (const location of locations) {
-            const errors = await databasesService.getEtlErrors(db.name, location);
-
-            locationsEtlErrors.push(errors);
+            try {
+                const stats = await tasksService.getEtlStats(db.name, location);
+                results.push(stats);
+            } catch {
+                // ignore errors for individual nodes
+            }
         }
+        return results;
+    }, [db]);
 
-        return locationsEtlErrors;
-    }, []);
-
-    console.log("maxym fetchEtlErrors", fetchEtlErrors.result);
+    const { result: etlErrorsResult } = useAsync(async () => {
+        const locations = DatabaseUtils.getLocations(db);
+        const results: EtlErrors[][] = [];
+        for (const location of locations) {
+            try {
+                const errors = await tasksService.getEtlErrors(db.name, location);
+                results.push(errors);
+            } catch {
+                // ignore errors for individual nodes
+            }
+        }
+        return results;
+    }, [db]);
 
     const upgradeLicenseLink = useRavenLink({ hash: "FLDLO4", isDocs: false });
 
@@ -225,19 +238,9 @@ export function OngoingTasksPage() {
         ...rabbitMqEtls,
         ...azureQueueStorageEtls,
     ];
-    
-    useAsync(async() => {
-        const locations = DatabaseUtils.getLocations(db);
 
-        const locationsEtlErrors = [];
-        for (const location of locations) {
-            const errors = await databasesService.getEtlErrors(db.name, location);
-            
-            locationsEtlErrors.push(errors);
-        }
-
-        return locationsEtlErrors;
-    }, []);
+    const flatEtlStats: EtlTaskStats[] = etlStatsResult?.flat() ?? [];
+    const flatEtlErrors: EtlErrors[] = etlErrorsResult?.flat() ?? [];
 
     const sinks = [...kafkaSinks, ...rabbitMqSinks];
 
@@ -571,6 +574,8 @@ export function OngoingTasksPage() {
                                         {...sharedPanelProps}
                                         key={taskKey(x.shared)}
                                         data={x}
+                                        etlStats={flatEtlStats}
+                                        etlErrors={flatEtlErrors}
                                         onToggleDetails={startTrackingEtlProgress}
                                         showItemPreview={showItemPreview}
                                     />
@@ -580,6 +585,8 @@ export function OngoingTasksPage() {
                                         {...sharedPanelProps}
                                         key={taskKey(x.shared)}
                                         data={x}
+                                        etlStats={flatEtlStats}
+                                        etlErrors={flatEtlErrors}
                                         onToggleDetails={startTrackingEtlProgress}
                                         showItemPreview={showItemPreview}
                                     />
@@ -589,6 +596,8 @@ export function OngoingTasksPage() {
                                         {...sharedPanelProps}
                                         key={taskKey(x.shared)}
                                         data={x}
+                                        etlStats={flatEtlStats}
+                                        etlErrors={flatEtlErrors}
                                         onToggleDetails={startTrackingEtlProgress}
                                         showItemPreview={showItemPreview}
                                     />
@@ -598,6 +607,8 @@ export function OngoingTasksPage() {
                                         {...sharedPanelProps}
                                         key={taskKey(x.shared)}
                                         data={x}
+                                        etlStats={flatEtlStats}
+                                        etlErrors={flatEtlErrors}
                                         onToggleDetails={startTrackingEtlProgress}
                                         showItemPreview={showItemPreview}
                                     />
@@ -607,6 +618,8 @@ export function OngoingTasksPage() {
                                         {...sharedPanelProps}
                                         key={taskKey(x.shared)}
                                         data={x}
+                                        etlStats={flatEtlStats}
+                                        etlErrors={flatEtlErrors}
                                         onToggleDetails={startTrackingEtlProgress}
                                         showItemPreview={showItemPreview}
                                     />
@@ -616,6 +629,8 @@ export function OngoingTasksPage() {
                                         {...sharedPanelProps}
                                         key={taskKey(x.shared)}
                                         data={x}
+                                        etlStats={flatEtlStats}
+                                        etlErrors={flatEtlErrors}
                                         onToggleDetails={startTrackingEtlProgress}
                                         showItemPreview={showItemPreview}
                                     />
@@ -625,6 +640,8 @@ export function OngoingTasksPage() {
                                         {...sharedPanelProps}
                                         key={taskKey(x.shared)}
                                         data={x}
+                                        etlStats={flatEtlStats}
+                                        etlErrors={flatEtlErrors}
                                         onToggleDetails={startTrackingEtlProgress}
                                         showItemPreview={showItemPreview}
                                     />

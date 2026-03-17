@@ -22,9 +22,7 @@ export default function VirtualTableHead<T>({ table }: VirtualTableHeadProps<T>)
                                 })}
                                 style={{
                                     width: header.getSize(),
-                                    ...(isPinned
-                                        ? { position: "sticky", left: header.column.getStart("left") }
-                                        : {}),
+                                    ...(isPinned ? { position: "sticky", left: header.column.getStart("left") } : {}),
                                 }}
                             >
                                 <div

@@ -29,6 +29,9 @@ import getBackupLocationCommand from "commands/database/tasks/getBackupLocationC
 import testAzureQueueStorageServerConnectionCommand from "commands/database/cluster/testAzureQueueStorageServerConnectionCommand";
 import replicationProgressCommand from "commands/database/tasks/replicationProgressCommand";
 import internalReplicationProgressCommand from "commands/database/tasks/internalReplicationProgressCommand";
+import getEtlErrorsCommand from "commands/database/tasks/getEtlErrorsCommand";
+import getEtlStatsCommand from "commands/database/tasks/getEtlStatsCommand";
+import deleteEtlErrorsCommand from "commands/database/tasks/deleteEtlErrorsCommand";
 
 export default class TasksService {
     async getOngoingTasks(databaseName: string, location: databaseLocationSpecifier) {
@@ -165,5 +168,17 @@ export default class TasksService {
 
     async getBackupLocation(path: string, databaseName: string) {
         return new getBackupLocationCommand(path, databaseName).execute();
+    }
+
+    async getEtlErrors(...args: ConstructorParameters<typeof getEtlErrorsCommand>) {
+        return new getEtlErrorsCommand(...args).execute();
+    }
+
+    async getEtlStats(...args: ConstructorParameters<typeof getEtlStatsCommand>) {
+        return new getEtlStatsCommand(...args).execute();
+    }
+
+    async deleteEtlErrors(...args: ConstructorParameters<typeof deleteEtlErrorsCommand>) {
+        return new deleteEtlErrorsCommand(...args).execute();
     }
 }
