@@ -15,16 +15,16 @@ class etlTransformOrLoadErrorDetails extends abstractAlertDetails {
     
     view = require("views/common/notificationCenter/detailViewer/alerts/etlTransformOrLoadErrorDetails.html");
 
-    currentDetails = ko.observable<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>();
+    currentDetails = ko.observable<Raven.Server.Documents.ETL.EtlItemError>();
     
-    tableItems: Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo[] = [];
-    private gridController = ko.observable<virtualGridController<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>>();
-    private columnPreview = new columnPreviewPlugin<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>();
+    tableItems: Raven.Server.Documents.ETL.EtlItemError[] = [];
+    private gridController = ko.observable<virtualGridController<Raven.Server.Documents.ETL.EtlItemError>>();
+    private columnPreview = new columnPreviewPlugin<Raven.Server.Documents.ETL.EtlItemError>();
 
     constructor(alert: alert, notificationCenter: notificationCenter) {
         super(alert, notificationCenter);
 
-        this.tableItems = (this.alert.details() as Raven.Server.NotificationCenter.Notifications.Details.EtlErrorsDetails).Errors;
+        this.tableItems = (this.alert.details() as Raven.Server.Documents.ETL.Stats.EtlErrors)?.ItemErrors ?? [];
 
         // newest first
         this.tableItems.reverse();
@@ -38,18 +38,18 @@ class etlTransformOrLoadErrorDetails extends abstractAlertDetails {
 
         grid.init(() => this.fetcher(), () => {
             
-            const previewColumn = new actionColumn<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>(
+            const previewColumn = new actionColumn<Raven.Server.Documents.ETL.EtlItemError>(
                 grid, item => this.showDetails(item), "Preview", `<i class="icon-preview"></i>`, "70px",
             {
                 title: () => 'Show item preview'
             });
-            const dateColumn = new textColumn<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>(grid, x => generalUtils.formatUtcDateAsLocal(x.Date), "Date", "20%", {
-                sortable: x => x.Date
+            const dateColumn = new textColumn<Raven.Server.Documents.ETL.EtlItemError>(grid, x => generalUtils.formatUtcDateAsLocal(x.CreatedAt), "Date", "20%", {
+                sortable: x => x.CreatedAt
             });
-            const errorColumn = new textColumn<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>(grid, x => x.Error, "Error", "50%", {
+            const errorColumn = new textColumn<Raven.Server.Documents.ETL.EtlItemError>(grid, x => x.Error, "Error", "50%", {
                 sortable: x => x.Error
             });
-            const documentIdColumn = new textColumn<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>(grid, x => x.DocumentId || ' - ', "Document ID", "20%", {
+            const documentIdColumn = new textColumn<Raven.Server.Documents.ETL.EtlItemError>(grid, x => x.DocumentId || ' - ', "Document ID", "20%", {
                 sortable: x => x.DocumentId,
                 customComparator: generalUtils.sortAlphaNumeric
             });
@@ -60,13 +60,13 @@ class etlTransformOrLoadErrorDetails extends abstractAlertDetails {
             });
 
         this.columnPreview.install(".etlErrorDetails", ".js-etl-error-details-tooltip",
-            (details: Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo,
-             column: textColumn<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>,
+            (details: Raven.Server.Documents.ETL.EtlItemError,
+             column: textColumn<Raven.Server.Documents.ETL.EtlItemError>,
              e: JQuery.TriggeredEvent, onValue: (context: any, valueToCopy?: string) => void) => {
                 if (!(column instanceof actionColumn)) {
                     
                     if (column.header === "Date") {
-                        onValue(moment.utc(details.Date), details.Date);       
+                        onValue(moment.utc(details.CreatedAt), details.CreatedAt);
                     } else {
                         const value = column.getCellValue(details);
                         if (value) {
@@ -77,16 +77,16 @@ class etlTransformOrLoadErrorDetails extends abstractAlertDetails {
             });
     }
     
-    private showDetails(item: Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo) {
+    private showDetails(item: Raven.Server.Documents.ETL.EtlItemError) {
         this.currentDetails(item);
     }
     
-    copyToClipboard(item: Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo) {
+    copyToClipboard(item: Raven.Server.Documents.ETL.EtlItemError) {
         copyToClipboard.copy(item.Error, "Error has been copied to clipboard", document.getElementById("js-etl-error-details"));
     }
 
-    private fetcher(): JQueryPromise<pagedResult<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>> {
-        return $.Deferred<pagedResult<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>>()
+    private fetcher(): JQueryPromise<pagedResult<Raven.Server.Documents.ETL.EtlItemError>> {
+        return $.Deferred<pagedResult<Raven.Server.Documents.ETL.EtlItemError>>()
             .resolve({
                 items: this.tableItems,
                 totalResultCount: this.tableItems.length

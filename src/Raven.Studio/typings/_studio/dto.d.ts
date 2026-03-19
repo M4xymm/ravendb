@@ -651,10 +651,7 @@ interface adminLogsConfiguration extends Raven.Client.ServerWide.Operations.Logs
     CurrentMode: Sparrow.Logging.LogMode;
 }
 
-interface testEtlScriptResult {
-    DebugOutput: Array<string>;
-    TransformationErrors: Array<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>;
-}
+type testEtlScriptResult = Raven.Server.Documents.ETL.Test.TestEtlScriptResult;
 
 declare module Raven.Server.Documents.ETL.Providers.SQL.Test {
     interface SqlEtlTestScriptResult extends testEtlScriptResult {
@@ -1085,22 +1082,4 @@ interface TrafficWatchPostgresChange extends Raven.Client.Documents.Changes.Traf
     Username: string;
     Source: string;
     Query: string;
-}
-
-interface EtlErrors {
-    ProcessName: string;
-    ProcessErrors: Raven.Server.Documents.ETL.EtlProcessError[];
-    ItemErrors: Raven.Server.Documents.ETL.EtlItemError[];
-}
-
-interface EtlProcessTransformationStats {
-    Statistics: Raven.Server.Documents.ETL.EtlProcessStatistics;
-    TransformationName: string;
-}
-
-interface EtlTaskStats {
-    Stats: EtlProcessTransformationStats[];
-    TaskName: string;
-    TaskId: number;
-    EtlType: StudioEtlType;
 }

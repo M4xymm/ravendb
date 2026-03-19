@@ -32,6 +32,7 @@ import internalReplicationProgressCommand from "commands/database/tasks/internal
 import getEtlErrorsCommand from "commands/database/tasks/getEtlErrorsCommand";
 import getEtlStatsCommand from "commands/database/tasks/getEtlStatsCommand";
 import deleteEtlErrorsCommand from "commands/database/tasks/deleteEtlErrorsCommand";
+import retryBatchEtlCommand from "commands/database/tasks/retryBatchEtlCommand";
 
 export default class TasksService {
     async getOngoingTasks(databaseName: string, location: databaseLocationSpecifier) {
@@ -180,5 +181,9 @@ export default class TasksService {
 
     async deleteEtlErrors(...args: ConstructorParameters<typeof deleteEtlErrorsCommand>) {
         return new deleteEtlErrorsCommand(...args).execute();
+    }
+
+    async retryBatch(...args: ConstructorParameters<typeof retryBatchEtlCommand>) {
+        return new retryBatchEtlCommand(...args).execute();
     }
 }

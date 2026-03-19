@@ -56,8 +56,8 @@ class sqlTaskTestMode {
     debugOutput = ko.observableArray<string>([]);
     
     // all kinds of alerts:
-    transformationErrors = ko.observableArray<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>([]);
-    loadErrors = ko.observableArray<Raven.Server.NotificationCenter.Notifications.Details.EtlErrorInfo>([]);
+    transformationErrors = ko.observableArray<Raven.Server.Documents.ETL.EtlItemError>([]);
+    loadErrors = ko.observableArray<Raven.Server.Documents.ETL.EtlItemError>([]);
     slowSqlWarnings = ko.observableArray<Raven.Server.NotificationCenter.Notifications.Details.SlowSqlStatementInfo>([]);
     
     warningsCount = ko.pureComputed(() => {
@@ -151,12 +151,12 @@ class sqlTaskTestMode {
             
             new testSqlReplicationCommand(this.db, dto)
                 .execute()
-                .done((testResult: Raven.Server.Documents.ETL.Providers.SQL.Test.SqlEtlTestScriptResult) => {
+                .done((testResult) => {
                     this.testResults(testResult.Summary.flatMap(x => x.Commands));
                     this.debugOutput(testResult.DebugOutput);
-                    this.loadErrors(testResult.LoadErrors);
+                    this.loadErrors(testResult.ItemLoadErrors);
                     this.slowSqlWarnings(testResult.SlowSqlWarnings); 
-                    this.transformationErrors(testResult.TransformationErrors);
+                    this.transformationErrors(testResult.ItemTransformationErrors);
                     
                     if (this.warningsCount()) {
                         $('.test-container a[href="#warnings"]').tab('show');

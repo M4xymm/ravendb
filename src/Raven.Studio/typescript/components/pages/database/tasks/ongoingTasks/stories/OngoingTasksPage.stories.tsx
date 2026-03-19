@@ -51,6 +51,7 @@ export const FullView: StoryObj = {
         tasksService.withGetTasks();
         tasksService.withGetEtlProgress();
         tasksService.withEtlErrors();
+        tasksService.withEtlStats();
         tasksService.withGetExternalReplicationProgress();
         tasksService.withGetInternalReplicationProgress();
 

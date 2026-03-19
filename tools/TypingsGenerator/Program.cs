@@ -71,6 +71,7 @@ using Raven.Server.Documents.ETL.Providers.Raven.Test;
 using Raven.Server.Documents.ETL.Providers.SQL.RelationalWriters;
 using Raven.Server.Documents.ETL.Providers.SQL.Test;
 using Raven.Server.Documents.ETL.Stats;
+using Raven.Server.Documents.ETL.Test;
 using Raven.Server.Documents.Handlers;
 using Raven.Server.Documents.Handlers.Admin;
 using Raven.Server.Documents.Handlers.Batches;
@@ -569,6 +570,11 @@ namespace TypingsGenerator
             scripter.AddType(typeof(KafkaConnectionSettings));
             scripter.AddType(typeof(TestQueueSinkScript));
             scripter.AddType(typeof(TestQueueSinkScriptResult));
+
+            // etl errors
+            scripter.AddType(typeof(EtlErrors));
+            scripter.AddType(typeof(EtlTaskStats));
+            scripter.AddType(typeof(EtlProcessTransformationStats));
 
             // connection strings
             scripter.AddType(typeof(ConnectionString));
