@@ -59,14 +59,16 @@ internal sealed class
         }
         catch (Exception ex)
         {
-            await WriteErrorResponse(ex.ToString());
+            await WriteErrorResponse(ex.Message, ex.ToString());
         }
     }
 
-    private async Task WriteErrorResponse(string errorMessage)
+    private async Task WriteErrorResponse(string message, string errorDetails)
     {
         using (ServerStore.ContextPool.AllocateOperationContext(out JsonOperationContext context))
         {
+            var errorJson = JsonConvert.SerializeObject(new { Message = message, Error = errorDetails });
+
             await using (var writer =
                          new AsyncBlittableJsonTextWriter(context, RequestHandler.ResponseBodyStream()))
             {
@@ -74,7 +76,7 @@ internal sealed class
                     new DynamicJsonValue
                     {
                         [nameof(NodeConnectionTestResult.Success)] = false,
-                        [nameof(NodeConnectionTestResult.Error)] = errorMessage
+                        [nameof(NodeConnectionTestResult.Error)] = errorJson
                     });
             }
         }
