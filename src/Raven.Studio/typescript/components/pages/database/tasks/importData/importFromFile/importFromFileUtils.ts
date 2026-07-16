@@ -52,6 +52,19 @@ const connectionStringTokens: Record<keyof ImportFromFileFormData["configuration
     aiConnectionStrings: "AiConnectionStrings",
 };
 
+function pushGroupTokens<TKey extends string>(
+    tokens: Record<TKey, DatabaseRecordItemType>,
+    values: Record<TKey, boolean>,
+    includeAll: boolean,
+    result: DatabaseRecordItemType[]
+) {
+    (Object.keys(tokens) as TKey[]).forEach((key) => {
+        if (includeAll || values[key]) {
+            result.push(tokens[key]);
+        }
+    });
+}
+
 export function getDatabaseRecordTypes(
     formData: ImportFromFileFormData,
     restrictedSettingKeys: DatabaseSettingKey[] = []
@@ -59,12 +72,26 @@ export function getDatabaseRecordTypes(
     const { configuration } = formData;
 
     const isCustomized =
-        !configuration.isImportAllSettings || configuration.isCustomizeOngoingTasks || restrictedSettingKeys.length > 0;
+        !configuration.isImportAllSettings ||
+        configuration.isCustomizeOngoingTasks ||
+        !configuration.isIncludeConnectionStringsAndOngoingTasks ||
+        restrictedSettingKeys.length > 0;
 
     if (!isCustomized) {
         // Knockout parity: non-customized mode
         return configuration.isIncludeIndexHistory ? ["IndexesHistory"] : ["None"];
     }
+
+    // The customized path was entered ONLY because of license restrictions - the user still asked
+    // for "import all settings". The server expands "None" to its full default record-type list
+    // (which additionally includes LockMode, QueueSinks and IndexesHistory - tokens Studio has no
+    // toggle for), so the explicit list emitted here must be "server defaults minus restricted"
+    // to avoid silently narrowing the import beyond the restricted features.
+    const isRestrictionsOnlyBypass =
+        configuration.isImportAllSettings &&
+        !configuration.isCustomizeOngoingTasks &&
+        configuration.isIncludeConnectionStringsAndOngoingTasks &&
+        restrictedSettingKeys.length > 0;
 
     const result: DatabaseRecordItemType[] = [];
 
@@ -78,19 +105,16 @@ export function getDatabaseRecordTypes(
     });
 
     if (configuration.isIncludeConnectionStringsAndOngoingTasks) {
-        (Object.keys(ongoingTaskTokens) as (keyof typeof ongoingTaskTokens)[]).forEach((key) => {
-            if (!configuration.isCustomizeOngoingTasks || configuration.ongoingTasks[key]) {
-                result.push(ongoingTaskTokens[key]);
-            }
-        });
-        (Object.keys(connectionStringTokens) as (keyof typeof connectionStringTokens)[]).forEach((key) => {
-            if (!configuration.isCustomizeOngoingTasks || configuration.connectionStrings[key]) {
-                result.push(connectionStringTokens[key]);
-            }
-        });
+        const includeAll = !configuration.isCustomizeOngoingTasks;
+        pushGroupTokens(ongoingTaskTokens, configuration.ongoingTasks, includeAll, result);
+        pushGroupTokens(connectionStringTokens, configuration.connectionStrings, includeAll, result);
     }
 
-    if (configuration.isIncludeIndexHistory) {
+    if (isRestrictionsOnlyBypass) {
+        // parity with the server's expansion of "None" - tokens Studio has no toggle for
+        result.push("LockMode", "QueueSinks");
+        result.push("IndexesHistory");
+    } else if (configuration.isIncludeIndexHistory) {
         result.push("IndexesHistory");
     }
 
@@ -169,7 +193,10 @@ export function toImportDto(
     } as ImportOptions;
 }
 
-export function hasAnyInclude(formData: ImportFromFileFormData): boolean {
+export function hasAnyInclude(
+    formData: ImportFromFileFormData,
+    restrictedSettingKeys: DatabaseSettingKey[] = []
+): boolean {
     const d = formData.documents;
     const c = formData.configuration;
     return (
@@ -189,7 +216,8 @@ export function hasAnyInclude(formData: ImportFromFileFormData): boolean {
         d.isIncludeSubscriptions ||
         c.isIncludeIndexes ||
         c.isIncludeIdentities ||
-        c.isIncludeConnectionStringsAndOngoingTasks
+        c.isIncludeConnectionStringsAndOngoingTasks ||
+        getDatabaseRecordTypes(formData, restrictedSettingKeys).length > 0
     );
 }
 
