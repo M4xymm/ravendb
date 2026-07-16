@@ -30,7 +30,7 @@ export default function AddNewOngoingTask({ queryParams }: ReactQueryParamsProps
     const aiTasksUrl = forCurrentDatabase.aiTasks();
 
     return (
-        <div className="content-margin add-new-ongoing-task">
+        <div className="content-margin">
             <div className="d-flex justify-content-between">
                 <AboutViewHeading
                     title={isAiOnly ? "Add AI task" : "Add a database task"}
