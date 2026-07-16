@@ -1,10 +1,8 @@
 <div data-bind="compose: { model: context }"></div>
-<div class="content-margin flex-vertical">
-    <div>
-        <a class="close" title="Back to import options" data-bind="attr: { href: importDataOptionsUrl }">
-            <i class="icon-cancel"></i>
-        </a>
-    </div>
+<div class="content-margin flex-vertical import-parent">
+    <a class="close import-parent-close" title="Back to import options" data-bind="attr: { href: importDataOptionsUrl }">
+        <i class="icon-cancel"></i>
+    </a>
 
     <div class="flex-grow" data-bind="router: { cacheViews: false }">
     </div>
