@@ -3,91 +3,9 @@ import { useForm, useWatch } from "react-hook-form";
 import { useAppSelector } from "components/store";
 import { accessManagerSelectors } from "components/common/shell/accessManagerSliceSelectors";
 import { ImportFromFileFormData, importFromFileYupResolver } from "./importFromFileValidation";
+import { getDefaultFormData } from "./importFromFileUtils";
 
-export function getDefaultFormData(isAdminAccessOrAbove: boolean): ImportFromFileFormData {
-    return {
-        file: null,
-        documents: {
-            isIncludeDocuments: true,
-            isIncludeAttachments: true,
-            isIncludeCounters: true,
-            isIncludeRevisions: true,
-            isIncludeTimeSeries: true,
-            isIncludeTimeSeriesDeletedRanges: true,
-            isIncludeArtificialDocuments: false,
-            isIncludeArchivedDocuments: true,
-            isIncludeExpiredDocuments: true,
-            isIncludeConflicts: true,
-            isIncludeCompareExchange: true,
-            isIncludeLegacyAttachments: false,
-            isIncludeDocumentsTombstones: true,
-            isIncludeCompareExchangeTombstones: true,
-            isIncludeSubscriptions: true,
-        },
-        collections: {
-            isImportAllCollections: true,
-            includedCollections: [],
-        },
-        configuration: {
-            isIncludeIndexes: isAdminAccessOrAbove,
-            isIncludeIndexHistory: false,
-            isRemoveAnalyzers: false,
-            isIncludeIdentities: true,
-            isIncludeConnectionStringsAndOngoingTasks: true,
-            isCustomizeOngoingTasks: false,
-            ongoingTasks: {
-                periodicBackups: isAdminAccessOrAbove,
-                externalReplications: isAdminAccessOrAbove,
-                ravenEtls: isAdminAccessOrAbove,
-                sqlEtls: isAdminAccessOrAbove,
-                snowflakeEtls: isAdminAccessOrAbove,
-                olapEtls: isAdminAccessOrAbove,
-                elasticSearchEtls: isAdminAccessOrAbove,
-                queueEtls: isAdminAccessOrAbove,
-                hubReplications: true,
-                sinkReplications: isAdminAccessOrAbove,
-                embeddingsGeneration: isAdminAccessOrAbove,
-                genAi: isAdminAccessOrAbove,
-                cdcSinks: isAdminAccessOrAbove,
-                aiAgents: isAdminAccessOrAbove,
-                remoteAttachments: isAdminAccessOrAbove,
-            },
-            connectionStrings: {
-                ravenConnectionStrings: isAdminAccessOrAbove,
-                sqlConnectionStrings: isAdminAccessOrAbove,
-                snowflakeConnectionStrings: isAdminAccessOrAbove,
-                olapConnectionStrings: isAdminAccessOrAbove,
-                elasticSearchConnectionStrings: isAdminAccessOrAbove,
-                queueConnectionStrings: isAdminAccessOrAbove,
-                aiConnectionStrings: isAdminAccessOrAbove,
-            },
-            isImportAllSettings: true,
-            databaseSettings: {
-                settings: true,
-                conflictSolverConfig: true,
-                client: isAdminAccessOrAbove,
-                revisions: isAdminAccessOrAbove,
-                refresh: true,
-                expiration: isAdminAccessOrAbove,
-                documentsCompression: true,
-                schemaValidation: true,
-                dataArchival: true,
-                timeSeries: true,
-                sorters: true,
-                analyzers: true,
-                postgreSqlIntegration: true,
-            },
-        },
-        processing: {
-            isUseTransformScript: false,
-            transformScript: "",
-            isSetMaxReadOpsPerSecond: false,
-            maxReadOpsPerSecond: null,
-            isEncrypted: false,
-            encryptionKey: "",
-        },
-    };
-}
+export { getDefaultFormData };
 
 export const defaultTransformScript =
     "this.collection = this['@metadata']['@collection'];\r\n" +
