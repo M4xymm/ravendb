@@ -16,7 +16,7 @@ const variants: { variant: NavigationCardVariant; iconName: IconName }[] = [
     { variant: "Backups", iconName: "backups" },
     { variant: "Subscriptions", iconName: "subscription" },
     { variant: "ETL", iconName: "etl" },
-    { variant: "Sink", iconName: "data-sink" },
+    { variant: "Sink", iconName: "kafka-sink" },
     { variant: "ImportFile", iconName: "file-import" },
     { variant: "ImportRavenDb", iconName: "server" },
     { variant: "ImportCsv", iconName: "csv-import" },
