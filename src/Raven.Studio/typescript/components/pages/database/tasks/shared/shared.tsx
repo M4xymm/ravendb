@@ -31,7 +31,7 @@ import { useAppUrls } from "hooks/useAppUrls";
 import appUrl from "common/appUrl";
 import { CounterBadge } from "components/common/CounterBadge";
 import IconName from "../../../../../../typings/server/icons";
-import { TaskItemProps } from "components/pages/database/tasks/ongoingTasks/AddNewOngoingTask";
+import { NavigationCardProps } from "components/common/navigationCard/NavigationCard";
 import ModifyOngoingTaskResult = Raven.Client.Documents.Operations.OngoingTasks.ModifyOngoingTaskResult;
 import { StudioConnectionType } from "components/pages/database/settings/connectionStrings/connectionStringsTypes";
 import {
@@ -443,7 +443,7 @@ export function useOngoingTasksOperations(reload: () => void) {
 interface OngoingTasksCategory {
     categoryName: string;
     categoryIcon: IconName;
-    tasks: TaskItemProps[];
+    tasks: NavigationCardProps[];
 }
 
 export function useNewOngoingTasks({ isAiOnly = false }: { isAiOnly?: boolean }) {
@@ -832,7 +832,7 @@ export function useNewOngoingTasks({ isAiOnly = false }: { isAiOnly?: boolean })
     };
 }
 
-const matchesSearchText = (task: TaskItemProps, searchText: string) => {
+const matchesSearchText = (task: NavigationCardProps, searchText: string) => {
     if (!searchText) {
         return true;
     }

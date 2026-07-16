@@ -1,26 +1,18 @@
 import { HrHeader } from "components/common/HrHeader";
-import "./AddNewOngoingTask.scss";
 import { AboutViewHeading } from "components/common/AboutView";
 import Button from "react-bootstrap/Button";
-import Card from "react-bootstrap/Card";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
-import React, { ReactNode } from "react";
+import React from "react";
 import { Icon } from "components/common/Icon";
 import { MultiCheckboxToggle } from "components/common/toggles/MultiCheckboxToggle";
 import IconName from "typings/server/icons";
-import classNames from "classnames";
 import { useAppUrls } from "hooks/useAppUrls";
-import { useEventsCollector } from "hooks/useEventsCollector";
-import LicenseRestrictedBadge, { LicenseBadgeText } from "components/common/LicenseRestrictedBadge";
 import { useNewOngoingTasks } from "components/pages/database/tasks/shared/shared";
 import { EmptySet } from "components/common/EmptySet";
 import { AddNewOngoingTaskAboutView } from "components/pages/database/tasks/ongoingTasks/partials/AddNewOngoingTaskAboutView";
-import { useAppSelector } from "components/store";
-import { databaseSelectors } from "components/common/shell/databaseSliceSelectors";
-import { accessManagerSelectors } from "components/common/shell/accessManagerSliceSelectors";
-import { AccessPopover } from "components/common/AccessPopover";
+import NavigationCard, { NavigationCardProps } from "components/common/navigationCard/NavigationCard";
 
 interface AddNewOngoingTaskProps {
     isAiOnly: boolean;
@@ -111,7 +103,7 @@ export default function AddNewOngoingTask({ queryParams }: ReactQueryParamsProps
 interface TaskCategory {
     categoryName: string;
     categoryIcon: IconName;
-    tasks: TaskItemProps[];
+    tasks: NavigationCardProps[];
 }
 
 interface OngoingTasksListProps {
@@ -134,101 +126,13 @@ export function OngoingTasksList({ filteredTasks, isAiOnly }: OngoingTasksListPr
                             {category.categoryName}
                         </HrHeader>
                     )}
-                    <div className="d-grid gap-3 ongoing-tasks-grid">
+                    <div className="d-grid gap-3 navigation-cards-grid">
                         {category.tasks.map((task) => (
-                            <TaskItem key={task.title} {...task} />
+                            <NavigationCard key={task.title} {...task} />
                         ))}
                     </div>
                 </div>
             ))}
         </>
-    );
-}
-
-type TaskCardVariant = "AI" | "Replication" | "Backups" | "Subscriptions" | "ETL" | "Sink";
-
-export interface TaskItemProps {
-    title: string;
-    description: string;
-    iconName: IconName;
-    variant: TaskCardVariant;
-    link: string;
-    target: string;
-    licenseBadge?: LicenseBadgeText;
-    counterBadge?: ReactNode;
-    showLicenseBadge?: boolean;
-    isShardingSupported?: boolean;
-    accessRequired: databaseAccessLevel;
-    customDisabledReason?: ReactNode;
-}
-
-function TaskItem({
-    title,
-    description,
-    link,
-    iconName,
-    target,
-    variant,
-    licenseBadge,
-    showLicenseBadge,
-    counterBadge,
-    isShardingSupported,
-    accessRequired,
-    customDisabledReason,
-}: TaskItemProps) {
-    const { reportEvent } = useEventsCollector();
-    const isSharded = useAppSelector(databaseSelectors.activeDatabase)?.isSharded;
-    const canHandleOperation = useAppSelector(accessManagerSelectors.getCanHandleOperation)(accessRequired);
-
-    const isShardingNotSupported = !isShardingSupported && isSharded;
-    const isDisabled = isShardingNotSupported || !canHandleOperation || !!customDisabledReason;
-
-    return (
-        <AccessPopover
-            className="w-100 h-100"
-            accessRequired={accessRequired}
-            conditions={[
-                {
-                    isActive: isShardingNotSupported,
-                    message: "Sharding is not supported for this task",
-                },
-                {
-                    isActive: !!customDisabledReason,
-                    message: customDisabledReason,
-                },
-            ]}
-        >
-            <a
-                href={isDisabled ? undefined : link}
-                onClick={() => reportEvent(target, "new")}
-                className={classNames(
-                    "card no-decor w-100 ongoing-tasks-card h-100 add-new-ongoing-task__card",
-                    `variant-${variant}`,
-                    {
-                        "item-disabled": !!isDisabled,
-                    }
-                )}
-            >
-                <Card.Body className="d-flex align-items gap-3">
-                    <div className="align-self-center">
-                        <Icon icon={iconName} className="task-icon fs-2" />
-                    </div>
-                    <div className="d-flex flex-column align-self-center gap-1">
-                        <div className="d-flex align-items-center gap-2">
-                            <h4 className="mb-0">{title}</h4>
-                            {counterBadge}
-                        </div>
-                        <div>{description}</div>
-                    </div>
-                </Card.Body>
-
-                {showLicenseBadge && (
-                    <LicenseRestrictedBadge
-                        className="position-absolute top-0 end-0 m-2"
-                        licenseRequired={licenseBadge}
-                    />
-                )}
-            </a>
-        </AccessPopover>
     );
 }
