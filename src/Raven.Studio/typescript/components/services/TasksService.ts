@@ -56,6 +56,9 @@ import retryBatchEtlCommand from "commands/database/tasks/retryBatchEtlCommand";
 import testCdcSinkCommand from "commands/database/tasks/testCdcSinkCommand";
 import saveCdcSinkTaskCommand from "commands/database/tasks/saveCdcSinkTaskCommand";
 import getCdcSinkTaskSchemaCommand from "commands/database/tasks/getCdcSinkTaskSchemaCommand";
+import importDatabaseFromFileCommand = require("commands/database/studio/importDatabaseFromFileCommand");
+import validateSmugglerOptionsCommand = require("commands/database/studio/validateSmugglerOptionsCommand");
+import getNextOperationIdCommand = require("commands/database/studio/getNextOperationIdCommand");
 
 export default class TasksService {
     async getOngoingTasks(databaseName: string, location: databaseLocationSpecifier) {
@@ -330,5 +333,20 @@ export default class TasksService {
 
     async getCdcSinkTaskSchema(...args: ConstructorParameters<typeof getCdcSinkTaskSchemaCommand>) {
         return new getCdcSinkTaskSchemaCommand(...args).execute();
+    }
+
+    async validateSmugglerOptions(
+        options: Raven.Server.Smuggler.Documents.Data.DatabaseSmugglerOptionsServerSide,
+        databaseName: string
+    ) {
+        return new validateSmugglerOptionsCommand(options, databaseName).execute();
+    }
+
+    async getNextOperationId(databaseName: string) {
+        return new getNextOperationIdCommand(databaseName).execute();
+    }
+
+    async importDatabaseFromFile(...args: ConstructorParameters<typeof importDatabaseFromFileCommand>) {
+        return new importDatabaseFromFileCommand(...args).execute();
     }
 }
