@@ -8,14 +8,9 @@ import ImportSection from "./ImportSection";
 import { ImportFromFileFormData } from "../importFromFileValidation";
 import { RestrictedImportFeature } from "../useImportLicenseRestrictions";
 import { useRavenLink } from "components/hooks/useRavenLink";
-import { useAppSelector } from "components/store";
-import { licenseSelectors } from "components/common/shell/licenseSlice";
 import genUtils from "common/generalUtils";
 
 const backupExtensions = [
-    "ravendbdump",
-    "ravendb-snapshot",
-    "ravendb-encrypted-snapshot",
     "ravendb-full-backup",
     "ravendb-encrypted-full-backup",
     "ravendb-incremental-backup",
@@ -30,7 +25,6 @@ export default function SelectFileSection({ restrictedFeatures }: SelectFileSect
     const { control, setValue, formState } = useFormContext<ImportFromFileFormData>();
     const file = useWatch({ control, name: "file" });
     const buyLink = useRavenLink({ hash: "FLDLO4", isDocs: false });
-    const isCloud = useAppSelector(licenseSelectors.statusValue("IsCloud"));
 
     const fileExtension = file ? genUtils.getFileExtension(file.name) : null;
     const isBackupFile = fileExtension ? backupExtensions.includes(fileExtension) : false;
@@ -47,7 +41,12 @@ export default function SelectFileSection({ restrictedFeatures }: SelectFileSect
                     maxFiles={1}
                     // backup/snapshot extensions are selectable on purpose - dedicated alerts below
                     // redirect the user to the Restore flow instead of a generic rejection
-                    validExtensions={backupExtensions}
+                    validExtensions={[
+                        "ravendbdump",
+                        ...backupExtensions,
+                        "ravendb-snapshot",
+                        "ravendb-encrypted-snapshot",
+                    ]}
                     isExtensionsListHidden
                 />
                 <div className="d-flex mt-1 justify-content-end">
