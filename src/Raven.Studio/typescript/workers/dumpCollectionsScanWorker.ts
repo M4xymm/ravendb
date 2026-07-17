@@ -67,6 +67,7 @@ function zstdDecompressStream(
     const reader = input.getReader();
     let decompress: Decompress;
     let isClosed = false;
+    let hasProducedInPull = false;
 
     return new ReadableStream<Uint8Array>({
         start(controller) {
@@ -75,6 +76,7 @@ function zstdDecompressStream(
                     return;
                 }
                 if (chunk.length > 0) {
+                    hasProducedInPull = true;
                     controller.enqueue(chunk);
                 }
                 if (isLast) {
@@ -84,19 +86,25 @@ function zstdDecompressStream(
             });
         },
         async pull(controller) {
-            const { done, value } = await reader.read();
-            if (done) {
-                if (!isClosed) {
-                    decompress.push(new Uint8Array(0), true);
+            // keep feeding the decompressor until it produces output: the stream never calls
+            // pull again after a pull that enqueued nothing, and fzstd buffers input internally
+            // until it can complete a block - a single read per pull would deadlock
+            hasProducedInPull = false;
+            while (!isClosed && !hasProducedInPull) {
+                const { done, value } = await reader.read();
+                if (done) {
                     if (!isClosed) {
-                        isClosed = true;
-                        controller.close();
+                        decompress.push(new Uint8Array(0), true);
+                        if (!isClosed) {
+                            isClosed = true;
+                            controller.close();
+                        }
                     }
+                    return;
                 }
-                return;
+                onCompressedBytes(value.byteLength);
+                decompress.push(value);
             }
-            onCompressedBytes(value.byteLength);
-            decompress.push(value);
         },
         cancel(reason) {
             isClosed = true;
