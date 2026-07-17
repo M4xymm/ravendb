@@ -87,6 +87,9 @@
             ],
             "hooks/*": [
                 "typescript/components/hooks/*"
+            ],
+            "workers/*": [
+                "typescript/workers/*"
             ]
         },
         "jsx": "react-jsx"

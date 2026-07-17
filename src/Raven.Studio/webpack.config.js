@@ -198,6 +198,7 @@ module.exports = (_, args) => {
                 views: path.resolve(__dirname, "wwwroot/App/views"),
                 test: path.resolve(__dirname, "typescript/test"),
                 hooks: path.resolve(__dirname, "typescript/components/hooks"),
+                workers: path.resolve(__dirname, "typescript/workers"),
 
                 endpoints: path.resolve(__dirname, "typings/server/endpoints"),
                 configuration: path.resolve(__dirname, "typings/server/configuration"),
