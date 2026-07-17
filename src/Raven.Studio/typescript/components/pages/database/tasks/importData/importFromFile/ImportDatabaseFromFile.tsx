@@ -16,6 +16,7 @@ import { useEventsCollector } from "components/hooks/useEventsCollector";
 import notificationCenter from "common/notifications/notificationCenter";
 import activeDatabaseTracker from "common/shell/activeDatabaseTracker";
 import collectionsTracker from "common/helpers/database/collectionsTracker";
+import messagePublisher from "common/messagePublisher";
 import { useImportFromFileForm } from "./useImportFromFileForm";
 import { useImportLicenseRestrictions } from "./useImportLicenseRestrictions";
 import { toImportDto, hasAnyInclude } from "./importFromFileUtils";
@@ -41,6 +42,7 @@ const sectionNav: { id: string; label: string; icon: IconName }[] = [
 
 interface OperationState {
     operationId: number;
+    databaseName: string;
     progress: SmugglerProgress | null;
     status: OperationStatus;
     startTime: Date;
@@ -84,14 +86,37 @@ export default function ImportDatabaseFromFile() {
                 { TransformScript: dto.TransformScript } as Raven.Server.Smuggler.Documents.Data.DatabaseSmugglerOptionsServerSide,
                 databaseName
             );
-        } catch {
-            return; // command reports the error itself
+        } catch (error: any) {
+            messagePublisher.reportError(
+                "Invalid import options",
+                error?.responseText ?? String(error),
+                error?.statusText
+            );
+            return;
         }
 
-        const operationId = await tasksService.getNextOperationId(databaseName);
+        let operationId: number;
+        try {
+            operationId = await tasksService.getNextOperationId(databaseName);
+        } catch (error: any) {
+            messagePublisher.reportError(
+                "Could not get next task id.",
+                error?.responseText ?? String(error),
+                error?.statusText
+            );
+            return;
+        }
+
         const startTime = new Date();
 
-        setOperationState({ operationId, progress: null, status: "InProgress", startTime, endTime: null });
+        setOperationState({
+            operationId,
+            databaseName,
+            progress: null,
+            status: "InProgress",
+            startTime,
+            endTime: null,
+        });
         setIsModalOpen(true);
         setUploadPercent(0);
 
@@ -126,6 +151,14 @@ export default function ImportDatabaseFromFile() {
         try {
             await tasksService.importDatabaseFromFile(databaseName, operationId, formData.file, dto, (percent) =>
                 setUploadPercent(percent)
+            );
+        } catch {
+            // the command reports the upload error itself; if the upload died before the server
+            // registered any progress, monitorOperation will never settle - mark Faulted ourselves
+            setOperationState((prev) =>
+                prev && prev.status === "InProgress" && !prev.progress
+                    ? { ...prev, status: "Faulted", endTime: new Date() }
+                    : prev
             );
         } finally {
             setUploadPercent(null);
@@ -197,7 +230,7 @@ export default function ImportDatabaseFromFile() {
                         onClose={() => setIsModalOpen(false)}
                         onShowDetails={() =>
                             notificationCenter.instance.openDetailsForOperationById(
-                                activeDatabaseTracker.default.database(),
+                                operationState.databaseName,
                                 operationState.operationId
                             )
                         }

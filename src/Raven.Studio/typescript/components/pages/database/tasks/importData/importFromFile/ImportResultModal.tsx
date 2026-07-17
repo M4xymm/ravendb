@@ -8,7 +8,7 @@ import { Icon } from "components/common/Icon";
 import moment from "moment";
 
 type SmugglerProgress = Raven.Client.Documents.Smuggler.SmugglerProgressBase;
-type Counts = Raven.Client.Documents.Smuggler.Counts;
+type Counts = Raven.Client.Documents.Smuggler.SmugglerProgressBase.Counts;
 type OperationStatus = Raven.Client.Documents.Operations.OperationStatus;
 
 interface ImportResultRow {
@@ -24,12 +24,12 @@ function buildRows(progress: SmugglerProgress): ImportResultRow[] {
     return [
         { name: "Database Record", isNested: false, counts: progress.DatabaseRecord },
         { name: "Documents", isNested: false, counts: progress.Documents },
-        { name: "Attachments", isNested: true, counts: (progress.Documents as any)?.Attachments },
+        { name: "Attachments", isNested: true, counts: progress.Documents?.Attachments },
         { name: "Counters", isNested: true, counts: progress.Counters },
         { name: "Time Series", isNested: true, counts: progress.TimeSeries },
         { name: "Tombstones", isNested: true, counts: progress.Tombstones },
         { name: "Revisions", isNested: false, counts: progress.RevisionDocuments },
-        { name: "Attachments", isNested: true, counts: (progress.RevisionDocuments as any)?.Attachments },
+        { name: "Attachments", isNested: true, counts: progress.RevisionDocuments?.Attachments },
         { name: "Conflicts", isNested: false, counts: progress.Conflicts },
         { name: "Indexes", isNested: false, counts: progress.Indexes },
         { name: "Identities", isNested: false, counts: progress.Identities },
@@ -78,7 +78,7 @@ export default function ImportResultModal({
     const duration = moment.duration(durationSeconds, "seconds").humanize();
 
     return (
-        <Modal size="lg" show onHide={onClose} contentClassName="modal-border bulge-primary">
+        <Modal size="lg" show onHide={onClose} className="modal-border bulge-primary">
             <Modal.Header closeButton onCloseClick={onClose}>
                 <h4 className="mb-0">
                     <Icon icon="import-database" /> Database import
