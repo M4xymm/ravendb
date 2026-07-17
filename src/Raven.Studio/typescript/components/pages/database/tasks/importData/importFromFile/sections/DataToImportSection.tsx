@@ -4,7 +4,6 @@ import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Table from "react-bootstrap/Table";
-import classNames from "classnames";
 import { Icon } from "components/common/Icon";
 import { FormSwitch } from "components/common/Form";
 import ImportSection from "./ImportSection";
@@ -15,7 +14,7 @@ import { collectionsTrackerSelectors } from "components/common/shell/collections
 
 export default function DataToImportSection() {
     const { control, setValue } = useFormContext<ImportFromFileFormData>();
-    const formData = useWatch({ control });
+    const documents = useWatch({ control, name: "documents" });
     const collectionNames = useAppSelector(collectionsTrackerSelectors.collectionNames);
     const [collectionFilter, setCollectionFilter] = useState("");
 
@@ -34,30 +33,30 @@ export default function DataToImportSection() {
         );
     };
 
-    const itemsToWarnAbout = formData ? getItemsToWarnAbout(formData as ImportFromFileFormData) : [];
+    const itemsToWarnAbout = getItemsToWarnAbout({ documents });
 
     const forceDocumentsOn = (value: boolean) => {
         if (value) {
-            setValue("documents.isIncludeDocuments", true);
+            setValue("documents.isIncludeDocuments", true, { shouldDirty: true });
         }
     };
 
     const selectAllDocuments = () => {
-        setValue("documents.isIncludeDocuments", true);
-        setValue("documents.isIncludeAttachments", true);
-        setValue("documents.isIncludeCounters", true);
-        setValue("documents.isIncludeRevisions", true);
-        setValue("documents.isIncludeTimeSeries", true);
-        setValue("documents.isIncludeTimeSeriesDeletedRanges", true);
-        setValue("documents.isIncludeArtificialDocuments", true);
-        setValue("documents.isIncludeArchivedDocuments", true);
-        setValue("documents.isIncludeExpiredDocuments", true);
-        setValue("documents.isIncludeConflicts", true);
-        setValue("documents.isIncludeCompareExchange", true);
-        setValue("documents.isIncludeLegacyAttachments", true);
-        setValue("documents.isIncludeDocumentsTombstones", true);
-        setValue("documents.isIncludeCompareExchangeTombstones", true);
-        setValue("documents.isIncludeSubscriptions", true);
+        setValue("documents.isIncludeDocuments", true, { shouldDirty: true });
+        setValue("documents.isIncludeAttachments", true, { shouldDirty: true });
+        setValue("documents.isIncludeCounters", true, { shouldDirty: true });
+        setValue("documents.isIncludeRevisions", true, { shouldDirty: true });
+        setValue("documents.isIncludeTimeSeries", true, { shouldDirty: true });
+        setValue("documents.isIncludeTimeSeriesDeletedRanges", true, { shouldDirty: true });
+        setValue("documents.isIncludeArtificialDocuments", true, { shouldDirty: true });
+        setValue("documents.isIncludeArchivedDocuments", true, { shouldDirty: true });
+        setValue("documents.isIncludeExpiredDocuments", true, { shouldDirty: true });
+        setValue("documents.isIncludeConflicts", true, { shouldDirty: true });
+        setValue("documents.isIncludeCompareExchange", true, { shouldDirty: true });
+        setValue("documents.isIncludeLegacyAttachments", true, { shouldDirty: true });
+        setValue("documents.isIncludeDocumentsTombstones", true, { shouldDirty: true });
+        setValue("documents.isIncludeCompareExchangeTombstones", true, { shouldDirty: true });
+        setValue("documents.isIncludeSubscriptions", true, { shouldDirty: true });
     };
 
     return (
@@ -66,7 +65,7 @@ export default function DataToImportSection() {
             <div className="d-flex gap-3 mb-4">
                 <Button
                     variant={isImportAll ? "primary" : "outline-secondary"}
-                    className={classNames("flex-grow-1 py-3")}
+                    className="flex-grow-1 py-3"
                     onClick={() => setValue("collections.isImportAllCollections", true, { shouldDirty: true })}
                 >
                     <Icon icon="documents" /> Import all collections
@@ -97,11 +96,23 @@ export default function DataToImportSection() {
                                     <Form.Check
                                         inline
                                         type="switch"
-                                        checked={includedCollections.length === collectionNames.length}
+                                        checked={
+                                            filteredCollections.length > 0 &&
+                                            filteredCollections.every((name) => includedCollections.includes(name))
+                                        }
                                         onChange={(e) =>
                                             setValue(
                                                 "collections.includedCollections",
-                                                e.target.checked ? [...collectionNames] : [],
+                                                e.target.checked
+                                                    ? [
+                                                          ...includedCollections,
+                                                          ...filteredCollections.filter(
+                                                              (name) => !includedCollections.includes(name)
+                                                          ),
+                                                      ]
+                                                    : includedCollections.filter(
+                                                          (name) => !filteredCollections.includes(name)
+                                                      ),
                                                 { shouldDirty: true }
                                             )
                                         }

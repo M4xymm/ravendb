@@ -15,17 +15,15 @@ export default function ImportSection({ id, title, children }: ImportSectionProp
         <section id={id} className="mb-5">
             <div className="d-flex align-items-center gap-2 mb-3">
                 <h3 className="mb-0">{title}</h3>
-                <a
-                    href="#"
-                    className="no-decor"
+                <button
+                    type="button"
+                    className="btn btn-link p-0"
+                    aria-expanded={isOpen}
                     title={isOpen ? "Collapse section" : "Expand section"}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        setIsOpen(!isOpen);
-                    }}
+                    onClick={() => setIsOpen(!isOpen)}
                 >
                     <Icon icon={isOpen ? "collapse-vertical" : "expand-vertical"} margin="m-0" />
-                </a>
+                </button>
             </div>
             <Collapse in={isOpen}>
                 <div>{children}</div>
