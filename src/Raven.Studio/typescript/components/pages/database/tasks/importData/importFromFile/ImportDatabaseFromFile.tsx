@@ -199,7 +199,7 @@ export default function ImportDatabaseFromFile() {
                     <Alert variant="warning">Note: At least one &apos;include&apos; option must be checked.</Alert>
                 )}
                 <div className="d-flex gap-4">
-                    <nav className="import-side-nav" style={{ minWidth: 220 }}>
+                    <nav className="position-sticky align-self-start" style={{ minWidth: 220, top: 20 }}>
                         {sectionNav.map((item) => (
                             <a
                                 key={item.id}
