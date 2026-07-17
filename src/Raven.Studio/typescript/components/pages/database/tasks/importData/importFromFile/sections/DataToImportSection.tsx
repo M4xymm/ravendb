@@ -24,7 +24,12 @@ export default function DataToImportSection() {
 
     // The Collections filter applies to collections in the imported FILE - the list is read
     // client-side from the selected dump. All collections start included; toggles exclude.
-    const { collections: fileCollections, isReading, readError } = useDumpFileCollections(file ?? null);
+    const {
+        collections: fileCollections,
+        isReading,
+        readProgressPercent,
+        readError,
+    } = useDumpFileCollections(file ?? null);
 
     useEffect(() => {
         setValue("collections.includedCollections", fileCollections, { shouldDirty: true });
@@ -136,7 +141,8 @@ export default function DataToImportSection() {
                             {isReading && (
                                 <tr>
                                     <td colSpan={2} className="text-muted">
-                                        <Spinner size="sm" /> Reading collections from the selected file...
+                                        <Spinner size="sm" /> Reading collections from the selected file...{" "}
+                                        {readProgressPercent}%
                                     </td>
                                 </tr>
                             )}

@@ -30,6 +30,7 @@ module.exports = (_, args) => {
             "bs5-styles-light": "./wwwroot/Content/css/bs5-styles-light.scss",
             "bs5-styles-classic": "./wwwroot/Content/css/bs5-styles-classic.scss",
             rql_worker: path.resolve(__dirname, "./languageService/src/index.ts"),
+            dump_scan_worker: path.resolve(__dirname, "./typescript/workers/dumpCollectionsScanWorker.ts"),
         },
         output: {
             path: __dirname + "/wwwroot/dist",
