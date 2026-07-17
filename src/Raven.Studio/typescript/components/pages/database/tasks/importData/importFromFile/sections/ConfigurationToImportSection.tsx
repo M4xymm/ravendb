@@ -194,6 +194,7 @@ export default function ConfigurationToImportSection() {
                                 <Form.Check
                                     inline
                                     type="switch"
+                                    aria-label="Select all settings"
                                     checked={areAllSettingsSelected}
                                     onChange={(e) => setAllSettings(e.target.checked)}
                                 />
@@ -209,7 +210,7 @@ export default function ConfigurationToImportSection() {
                                         <FormSwitch
                                             control={control}
                                             name={`configuration.databaseSettings.${key}`}
-                                            disabled={restricted}
+                                            {...(restricted && { disabled: true })}
                                         >
                                             {databaseSettingLabels[key]}
                                         </FormSwitch>

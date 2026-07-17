@@ -23,9 +23,9 @@ export default function ImportProcessingSection() {
     const databaseName = useAppSelector(databaseSelectors.activeDatabaseName);
     const [commandType, setCommandType] = useState<ImportCommandType>("PowerShell");
 
-    const isUseTransformScript = useWatch({ control, name: "processing.isUseTransformScript" });
-    const isSetMaxReadOps = useWatch({ control, name: "processing.isSetMaxReadOpsPerSecond" });
-    const isEncrypted = useWatch({ control, name: "processing.isEncrypted" });
+    const isUseTransformScript = !!formData.processing?.isUseTransformScript;
+    const isSetMaxReadOps = !!formData.processing?.isSetMaxReadOpsPerSecond;
+    const isEncrypted = !!formData.processing?.isEncrypted;
 
     const { restrictedFeatures } = useImportLicenseRestrictions();
     const curlCommand = buildImportCurlCommand(

@@ -96,6 +96,7 @@ export default function DataToImportSection() {
                                     <Form.Check
                                         inline
                                         type="switch"
+                                        aria-label="Select all collections"
                                         checked={
                                             filteredCollections.length > 0 &&
                                             filteredCollections.every((name) => includedCollections.includes(name))
