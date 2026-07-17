@@ -201,15 +201,22 @@ export default function ImportDatabaseFromFile() {
                 <div className="d-flex gap-4">
                     <nav className="position-sticky align-self-start" style={{ minWidth: 220, top: 20 }}>
                         {sectionNav.map((item) => (
-                            <a
+                            // plain buttons on purpose: anchor hrefs would change the location hash,
+                            // which the Studio router interprets as a route change
+                            <button
                                 key={item.id}
-                                href={`#${item.id}`}
-                                className={classNames("d-block py-1 no-decor", {
+                                type="button"
+                                className={classNames("btn btn-link d-block p-0 py-1 no-decor text-start", {
                                     "fw-bold": activeSectionId === item.id,
                                 })}
+                                onClick={() =>
+                                    document
+                                        .getElementById(item.id)
+                                        ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                                }
                             >
                                 <Icon icon={item.icon} /> {item.label}
-                            </a>
+                            </button>
                         ))}
                     </nav>
                     <div className="flex-grow-1">
