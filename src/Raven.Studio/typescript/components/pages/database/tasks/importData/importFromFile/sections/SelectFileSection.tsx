@@ -2,9 +2,7 @@ import React from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import Alert from "react-bootstrap/Alert";
 import Badge from "react-bootstrap/Badge";
-import classNames from "classnames";
 import { Icon } from "components/common/Icon";
-import { getLicenseBadgeClassName } from "components/common/LicenseRestrictedBadge";
 import FileDropzone from "components/common/FileDropzone";
 import ImportSection from "./ImportSection";
 import { ImportFromFileFormData } from "../importFromFileValidation";
@@ -15,6 +13,9 @@ import { licenseSelectors } from "components/common/shell/licenseSlice";
 import genUtils from "common/generalUtils";
 
 const backupExtensions = [
+    "ravendbdump",
+    "ravendb-snapshot",
+    "ravendb-encrypted-snapshot",
     "ravendb-full-backup",
     "ravendb-encrypted-full-backup",
     "ravendb-incremental-backup",
@@ -40,11 +41,13 @@ export default function SelectFileSection({ restrictedFeatures }: SelectFileSect
             <div className="card p-4">
                 <div className="small-label mb-1">Select file</div>
                 <FileDropzone
-                    onChange={(files) => setValue("file", files[0] ?? null, { shouldValidate: true, shouldDirty: true })}
+                    onChange={(files) =>
+                        setValue("file", files[0] ?? null, { shouldValidate: true, shouldDirty: true })
+                    }
                     maxFiles={1}
                     // backup/snapshot extensions are selectable on purpose - dedicated alerts below
                     // redirect the user to the Restore flow instead of a generic rejection
-                    validExtensions={["ravendbdump", ...backupExtensions, "ravendb-snapshot", "ravendb-encrypted-snapshot"]}
+                    validExtensions={backupExtensions}
                     isExtensionsListHidden
                 />
                 <div className="d-flex mt-1 justify-content-end">
@@ -64,19 +67,12 @@ export default function SelectFileSection({ restrictedFeatures }: SelectFileSect
                             <Icon icon="warning" color="warning" /> Some data may not be imported
                         </div>
                         <div>
-                            Your license doesn&apos;t include the following features. Any related data in this file
-                            will be skipped automatically.
+                            Your license doesn&apos;t include the following features. Any related data in this file will
+                            be skipped automatically.
                         </div>
                         <div className="d-flex gap-2 flex-wrap mt-2">
                             {restrictedFeatures.map((feature) => (
-                                <Badge
-                                    key={feature.settingKey}
-                                    bg="secondary"
-                                    className={classNames(
-                                        "license-restricted-badge",
-                                        getLicenseBadgeClassName(feature.licenseRequired, isCloud)
-                                    )}
-                                >
+                                <Badge key={feature.settingKey} bg="secondary">
                                     <Icon icon="license" /> {feature.label}
                                 </Badge>
                             ))}
