@@ -6,6 +6,7 @@ import Form from "react-bootstrap/Form";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 import { Icon } from "components/common/Icon";
+import PopoverWithHoverWrapper from "components/common/PopoverWithHoverWrapper";
 import { FormSwitch } from "components/common/Form";
 import ImportSection from "./ImportSection";
 import { ImportFromFileFormData } from "../importFromFileValidation";
@@ -206,11 +207,14 @@ export default function DataToImportSection() {
                 <hr />
                 <FormSwitch control={control} name="documents.isIncludeArtificialDocuments">
                     Include Artificial Documents{" "}
-                    <Icon
-                        icon="info"
-                        margin="ms-1"
-                        title="Importing artificial documents might cause import error of Map-Reduce indexes with OutputReduceToCollection."
-                    />
+                    <PopoverWithHoverWrapper
+                        message="Importing artificial documents might cause import error of Map-Reduce indexes with OutputReduceToCollection."
+                    >
+                        {/* prevent the click on the icon from toggling the surrounding switch label */}
+                        <span onClick={(e) => e.preventDefault()}>
+                            <Icon icon="info" margin="ms-1" />
+                        </span>
+                    </PopoverWithHoverWrapper>
                 </FormSwitch>
                 <FormSwitch control={control} name="documents.isIncludeArchivedDocuments">
                     Include Archived Documents
