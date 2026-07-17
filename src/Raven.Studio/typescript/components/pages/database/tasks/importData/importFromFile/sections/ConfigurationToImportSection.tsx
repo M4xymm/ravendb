@@ -212,15 +212,18 @@ export default function ConfigurationToImportSection() {
                             const licenseRequired = getLicenseRequired(key);
                             return (
                                 <tr key={key} title={restricted ? getRestrictionTooltip(key) : undefined}>
-                                    <td colSpan={2} className={restricted ? "item-disabled" : undefined}>
+                                    <td colSpan={2}>
                                         <div className="d-flex align-items-center gap-2">
-                                            <FormSwitch
-                                                control={control}
-                                                name={`configuration.databaseSettings.${key}`}
-                                                {...(restricted && { disabled: true })}
-                                            >
-                                                {databaseSettingLabels[key]}
-                                            </FormSwitch>
+                                            {/* dim only the switch - the license badge must stay fully visible */}
+                                            <div className={restricted ? "item-disabled" : undefined}>
+                                                <FormSwitch
+                                                    control={control}
+                                                    name={`configuration.databaseSettings.${key}`}
+                                                    {...(restricted && { disabled: true })}
+                                                >
+                                                    {databaseSettingLabels[key]}
+                                                </FormSwitch>
+                                            </div>
                                             {restricted && (
                                                 <LicenseRestrictedBadge licenseRequired={licenseRequired} />
                                             )}
