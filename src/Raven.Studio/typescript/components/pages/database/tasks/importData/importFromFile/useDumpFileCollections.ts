@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Decompress } from "fzstd";
 
 interface DumpFileCollectionsState {
     collections: string[];
@@ -54,13 +55,67 @@ async function scanStream(stream: ReadableStream<Uint8Array>, signal: AbortSigna
     return Array.from(found).sort((a, b) => a.localeCompare(b));
 }
 
-async function readCollectionsFromDumpFile(file: File, signal: AbortSignal): Promise<string[]> {
-    const header = new Uint8Array(await file.slice(0, 2).arrayBuffer());
-    const isGzip = header.length === 2 && header[0] === 0x1f && header[1] === 0x8b;
+// The browser's DecompressionStream doesn't support zstd, which is the server's default
+// export compression - fzstd (pure JS) handles that branch.
+function zstdDecompressStream(input: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+    const reader = input.getReader();
+    let decompress: Decompress;
+    let isClosed = false;
 
-    const stream = isGzip
-        ? file.stream().pipeThrough(new DecompressionStream("gzip"))
-        : file.stream();
+    return new ReadableStream<Uint8Array>({
+        start(controller) {
+            decompress = new Decompress((chunk, isLast) => {
+                if (isClosed) {
+                    return;
+                }
+                if (chunk.length > 0) {
+                    controller.enqueue(chunk);
+                }
+                if (isLast) {
+                    isClosed = true;
+                    controller.close();
+                }
+            });
+        },
+        async pull(controller) {
+            const { done, value } = await reader.read();
+            if (done) {
+                if (!isClosed) {
+                    decompress.push(new Uint8Array(0), true);
+                    if (!isClosed) {
+                        isClosed = true;
+                        controller.close();
+                    }
+                }
+                return;
+            }
+            decompress.push(value);
+        },
+        cancel(reason) {
+            isClosed = true;
+            return reader.cancel(reason);
+        },
+    });
+}
+
+async function readCollectionsFromDumpFile(file: File, signal: AbortSignal): Promise<string[]> {
+    const header = new Uint8Array(await file.slice(0, 4).arrayBuffer());
+    const isGzip = header.length >= 2 && header[0] === 0x1f && header[1] === 0x8b;
+    const isZstd =
+        header.length === 4 &&
+        header[0] === 0x28 &&
+        header[1] === 0xb5 &&
+        header[2] === 0x2f &&
+        header[3] === 0xfd;
+
+    let stream: ReadableStream<Uint8Array>;
+    if (isGzip) {
+        stream = file.stream().pipeThrough(new DecompressionStream("gzip"));
+    } else if (isZstd) {
+        stream = zstdDecompressStream(file.stream());
+    } else {
+        stream = file.stream();
+    }
 
     return scanStream(stream, signal);
 }
