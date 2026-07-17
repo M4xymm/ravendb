@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
@@ -40,6 +40,18 @@ const sectionNav: { id: string; label: string; icon: IconName }[] = [
     { id: "import-processing", label: "Import processing & security", icon: "settings" },
 ];
 
+function findScrollParent(element: HTMLElement | null): Element | null {
+    let current = element?.parentElement;
+    while (current && current !== document.body) {
+        const { overflowY } = getComputedStyle(current);
+        if ((overflowY === "auto" || overflowY === "scroll") && current.scrollHeight > current.clientHeight) {
+            return current;
+        }
+        current = current.parentElement;
+    }
+    return null;
+}
+
 interface OperationState {
     operationId: number;
     databaseName: string;
@@ -68,7 +80,15 @@ export default function ImportDatabaseFromFile() {
     const isUploading = uploadPercent != null;
     useDirtyFlag(isUploading);
 
-    const activeSectionId = useScrollSpy(sectionIds);
+    // The Studio scrolls the view inside a container (not the document), so the scroll-spy needs
+    // that container as its root - otherwise its bottom-of-scroll fallback always fires.
+    const pageRef = useRef<HTMLDivElement>(null);
+    const [scrollRoot, setScrollRoot] = useState<Element | null>(null);
+    useEffect(() => {
+        setScrollRoot(findScrollParent(pageRef.current));
+    }, []);
+
+    const activeSectionId = useScrollSpy(sectionIds, { root: scrollRoot });
 
     const importOptionsUrl = forCurrentDatabase.importDataOptionsUrl();
 
@@ -170,7 +190,7 @@ export default function ImportDatabaseFromFile() {
 
     return (
         <FormProvider {...form}>
-            <div className="content-margin">
+            <div className="content-margin" ref={pageRef}>
                 <AboutViewHeading
                     title="Import data from a .ravendbdump file into the current database"
                     icon="import-database"
