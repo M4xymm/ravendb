@@ -174,13 +174,13 @@ export default function ImportDatabaseFromFile() {
                 <AboutViewHeading
                     title="Import data from a .ravendbdump file into the current database"
                     icon="import-database"
-                    marginBottom={2}
+                    // marginBottom={5}
                     backUrl={importOptionsUrl}
                 />
-                <Alert variant="info">
+                <Alert variant="info" className="w-50">
                     <Icon icon="info" /> Note: Importing will overwrite any existing documents and indexes.
                 </Alert>
-                <div className="mb-4 d-flex align-items-center gap-3">
+                <div className="my-4 d-flex align-items-center gap-3">
                     <Button
                         variant="primary"
                         className="rounded-pill"
