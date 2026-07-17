@@ -21,9 +21,28 @@ export default function DataToImportSection() {
     const isImportAll = useWatch({ control, name: "collections.isImportAllCollections" });
     const includedCollections = useWatch({ control, name: "collections.includedCollections" }) ?? [];
 
-    const filteredCollections = collectionNames.filter((name) =>
+    // The Collections filter applies to collections in the imported FILE, which the server cannot
+    // list before the upload. The current database's collections are offered as suggestions, and
+    // any other collection name can be added manually (Knockout parity).
+    const manuallyAddedCollections = includedCollections.filter((name) => !collectionNames.includes(name));
+    const allCollectionNames = [...collectionNames, ...manuallyAddedCollections];
+
+    const filteredCollections = allCollectionNames.filter((name) =>
         name.toLowerCase().includes(collectionFilter.toLowerCase())
     );
+
+    const trimmedFilter = collectionFilter.trim();
+    const canAddCollection =
+        trimmedFilter.length > 0 &&
+        !allCollectionNames.some((name) => name.toLowerCase() === trimmedFilter.toLowerCase());
+
+    const addCollection = () => {
+        if (!canAddCollection) {
+            return;
+        }
+        setValue("collections.includedCollections", [...includedCollections, trimmedFilter], { shouldDirty: true });
+        setCollectionFilter("");
+    };
 
     const toggleCollection = (name: string, include: boolean) => {
         setValue(
@@ -80,13 +99,23 @@ export default function DataToImportSection() {
             </div>
             {!isImportAll && (
                 <div className="mb-4">
-                    <Form.Control
-                        type="text"
-                        placeholder="Search for collection"
-                        value={collectionFilter}
-                        onChange={(e) => setCollectionFilter(e.target.value)}
-                        className="mb-2"
-                    />
+                    <div className="d-flex gap-2 mb-2">
+                        <Form.Control
+                            type="text"
+                            placeholder="Search or add a collection from the imported file"
+                            value={collectionFilter}
+                            onChange={(e) => setCollectionFilter(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    addCollection();
+                                }
+                            }}
+                        />
+                        <Button variant="secondary" disabled={!canAddCollection} onClick={addCollection}>
+                            <Icon icon="plus" /> Add
+                        </Button>
+                    </div>
                     <Table className="mb-0">
                         <thead>
                             <tr>
@@ -122,6 +151,14 @@ export default function DataToImportSection() {
                             </tr>
                         </thead>
                         <tbody>
+                            {filteredCollections.length === 0 && (
+                                <tr>
+                                    <td colSpan={2} className="text-muted">
+                                        No collections found. Type a collection name from the imported file above and
+                                        click Add.
+                                    </td>
+                                </tr>
+                            )}
                             {filteredCollections.map((name) => (
                                 <tr key={name}>
                                     <td colSpan={2}>
