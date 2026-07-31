@@ -30,6 +30,7 @@ import moment from "moment";
 import { databaseSelectors } from "components/common/shell/databaseSliceSelectors";
 import activeDatabaseTracker = require("common/shell/activeDatabaseTracker");
 import RichAlert from "components/common/RichAlert";
+import { LocaleSelector, T, Var } from "gt-react";
 
 export const defaultItemsToProcess = 65536;
 
@@ -139,7 +140,8 @@ export default function DocumentExpiration() {
                 <Row className="gy-sm">
                     <Col>
                         <Form onSubmit={handleSubmit(onSave)} autoComplete="off">
-                            <AboutViewHeading title="Document Expiration" icon="document-expiration" />
+                            <AboutViewHeading title={<T>Document Expiration</T>} icon="document-expiration" />
+                            <LocaleSelector />
                             <ButtonWithSpinner
                                 type="submit"
                                 variant="primary"
@@ -148,14 +150,14 @@ export default function DocumentExpiration() {
                                 disabled={!formState.isDirty || isLimitWarningVisible}
                                 isSpinning={formState.isSubmitting}
                             >
-                                Save
+                                <T>Save</T>
                             </ButtonWithSpinner>
                             <Col>
                                 <Card>
                                     <Card.Body>
                                         <div className="vstack gap-2">
                                             <FormSwitch name="isDocumentExpirationEnabled" control={control}>
-                                                Enable Document Expiration
+                                                <T>Enable Document Expiration</T>
                                             </FormSwitch>
                                             <div>
                                                 <FormSwitch
@@ -167,7 +169,7 @@ export default function DocumentExpiration() {
                                                         !formValues.isDocumentExpirationEnabled
                                                     }
                                                 >
-                                                    Set custom expiration frequency
+                                                    <T>Set custom expiration frequency</T>
                                                 </FormSwitch>
                                                 <FormInput
                                                     name="deleteFrequency"
@@ -185,16 +187,20 @@ export default function DocumentExpiration() {
                                                     }
                                                     addon="seconds"
                                                 />
-                                                {isLimitWarningVisible && (
-                                                    <RichAlert variant="warning" className="mt-3">
-                                                        Your current license does not allow a frequency higher than{" "}
-                                                        {minPeriodForExpirationInHours} hours (
-                                                        {moment
-                                                            .duration(minPeriodForExpirationInHours, "hours")
-                                                            .asSeconds()}{" "}
-                                                        seconds)
-                                                    </RichAlert>
-                                                )}
+                                                <Var>
+                                                    {isLimitWarningVisible && (
+                                                        <RichAlert variant="warning" className="mt-3">
+                                                            Your current license does not allow a frequency higher than{" "}
+                                                            <Var>{minPeriodForExpirationInHours}</Var> hours (
+                                                            <Var>
+                                                                {moment
+                                                                    .duration(minPeriodForExpirationInHours, "hours")
+                                                                    .asSeconds()}
+                                                            </Var>{" "}
+                                                            seconds)
+                                                        </RichAlert>
+                                                    )}
+                                                </Var>
                                             </div>
                                             <div>
                                                 <FormSwitch
@@ -206,7 +212,7 @@ export default function DocumentExpiration() {
                                                         !formValues.isDocumentExpirationEnabled
                                                     }
                                                 >
-                                                    Set max number of documents to process in a single run
+                                                    <T>Set max number of documents to process in a single run</T>
                                                 </FormSwitch>
                                                 <FormInput
                                                     name="maxItemsToProcess"
@@ -228,27 +234,33 @@ export default function DocumentExpiration() {
                     <Col sm={12} lg={4}>
                         <AboutViewAnchored>
                             <AccordionItemWrapper targetId="1" icon="about" color="info">
-                                <p>
-                                    When <strong>Document Expiration</strong> is enabled:
-                                </p>
-                                <ul>
-                                    <li>
-                                        The server scans the database at the specified <strong>frequency</strong>,
-                                        searching for documents that should be deleted.
-                                    </li>
-                                    <li>
-                                        Any document that has an <code>@expires</code> metadata property whose time has
-                                        passed at the time of the scan will be removed.
-                                    </li>
-                                </ul>
+                                <T>
+                                    <p>
+                                        When <strong>Document Expiration</strong> is enabled:
+                                    </p>
+                                    <ul>
+                                        <li>
+                                            The server scans the database at the specified <strong>frequency</strong>,
+                                            searching for documents that should be deleted.
+                                        </li>
+                                        <li>
+                                            Any document that has an <code>@expires</code> metadata property whose time
+                                            has passed at the time of the scan will be removed.
+                                        </li>
+                                    </ul>
 
-                                <p>Example of a document scheduled for expiration:</p>
+                                    <p>Example of a document scheduled for expiration:</p>
+                                </T>
                                 <Code code={codeExample} language="javascript" />
                                 <hr />
-                                <div className="small-label mb-2">useful links</div>
-                                <a href={documentExpirationDocsLink} target="_blank">
-                                    <Icon icon="newtab" /> Docs - Document Expiration
-                                </a>
+                                <T>
+                                    <div className="small-label mb-2">
+                                        <T>useful links</T>
+                                    </div>
+                                    <a href={documentExpirationDocsLink} target="_blank">
+                                        <Icon icon="newtab" /> Docs - Document Expiration
+                                    </a>
+                                </T>
                             </AccordionItemWrapper>
                             <FeatureAvailabilitySummaryWrapper
                                 isUnlimited={!minPeriodForExpirationInHours}

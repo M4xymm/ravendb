@@ -50,9 +50,15 @@ pluginWidget.install({});
 
 const shellSetup = require("components/common/shell/setup");
 
-shellSetup.commonInit();
-
-app.start().then(() => {
+// commonInit resolves once translations are loaded. Starting the app before
+// that renders the source language first and visibly switches afterwards, so
+// the splash screen in index.html stays up until this settles. A failed
+// translation load must not block startup: GT falls back to English.
+shellSetup
+    .commonInit()
+    .catch((error: unknown) => console.error("Failed to load translations, falling back to English", error))
+    .then(() => app.start())
+    .then(() => {
     if ("WebSocket" in window) {
         if (window.location.pathname.startsWith("/studio")) {
             const shell = require("viewmodels/shell");

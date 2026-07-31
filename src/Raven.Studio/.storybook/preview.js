@@ -45,7 +45,9 @@ import { commonInit } from "components/common/shell/setup";
 import { fn } from "storybook/test";
 window.jest = { fn }
 
-commonInit();
+// commonInit is async (it loads translations); stories render synchronously and
+// fall back to the source language, so this only avoids an unhandled rejection.
+commonInit().catch((error) => console.error("Failed to load translations", error));
 
 import studioSettings from "common/settings/studioSettings";
 const mockJQueryPromise = () => $().promise();

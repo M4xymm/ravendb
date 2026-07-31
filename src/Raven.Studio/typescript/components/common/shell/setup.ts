@@ -19,6 +19,9 @@ import { accessManagerActions } from "components/common/shell/accessManagerSlice
 import { aiAssistantActions } from "./aiAssistantSlice";
 import { chatbotActions } from "components/shell/chatbot/store/chatbotSlice";
 import router from "plugins/router";
+import { initializeGTSPA } from "gt-react";
+import loadTranslations from "../../../loadTranslations";
+import gtConfig from "../../../../gt.config.json";
 
 let initialized = false;
 
@@ -233,7 +236,22 @@ function initYup() {
     });
 }
 
-export function commonInit() {
+function initGT(): Promise<void> {
+    // gt.config.json must be spread, not nested: initializeGTSPA reads
+    // defaultLocale and locales as top-level fields.
+    return initializeGTSPA({
+        ...gtConfig,
+        loadTranslations,
+    });
+}
+
+/**
+ * Returns a promise that resolves once translations are loaded. Callers that
+ * render UI should await it, otherwise the first render happens in the source
+ * language and visibly switches once translations arrive.
+ */
+export function commonInit(): Promise<void> {
     initRedux();
     initYup();
+    return initGT();
 }

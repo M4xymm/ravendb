@@ -1,5 +1,10 @@
 /* global jest, $ */
 
+const { TextEncoder, TextDecoder } = require("util");
+// gt-react hashes JSX content at runtime and needs these Web APIs, absent in jsdom.
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
 const lodash = require("lodash");
 const knockout = require("knockout");
 require("knockout-postbox");

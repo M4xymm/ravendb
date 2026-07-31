@@ -1,0 +1,11 @@
+{
+    "$schema": "https://assets.gtx.dev/config-schema.json",
+    "defaultLocale": "en",
+    "locales": ["pl"],
+    "src": ["typescript/components/pages/database/settings/documentExpiration/**/*.{ts,tsx}"],
+    "files": {
+        "gt": {
+            "output": "typescript/i18n/_gt/[locale].json"
+        }
+    }
+}
