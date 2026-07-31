@@ -19,6 +19,7 @@ import { accessManagerActions } from "components/common/shell/accessManagerSlice
 import { aiAssistantActions } from "./aiAssistantSlice";
 import { chatbotActions } from "components/shell/chatbot/store/chatbotSlice";
 import router from "plugins/router";
+import { initI18n } from "i18n/config";
 
 let initialized = false;
 
@@ -233,7 +234,12 @@ function initYup() {
     });
 }
 
-export function commonInit() {
+/**
+ * Resolves once the shared "common" namespace is loaded. Per-view namespaces
+ * load on demand afterwards, suspending only the view that needs them.
+ */
+export function commonInit(): Promise<unknown> {
     initRedux();
     initYup();
+    return initI18n();
 }

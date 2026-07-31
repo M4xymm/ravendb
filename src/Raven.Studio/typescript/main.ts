@@ -50,9 +50,15 @@ pluginWidget.install({});
 
 const shellSetup = require("components/common/shell/setup");
 
-shellSetup.commonInit();
-
-app.start().then(() => {
+// commonInit resolves once the shared translation namespace is loaded. The
+// splash screen in index.html stays up until then (the shells remove it after
+// setRoot), so the UI never renders untranslated text first. A failed load is
+// logged and startup continues: i18next falls back to English.
+shellSetup
+    .commonInit()
+    .catch((error: unknown) => console.error("Failed to load translations, falling back to English", error))
+    .then(() => app.start())
+    .then(() => {
     if ("WebSocket" in window) {
         if (window.location.pathname.startsWith("/studio")) {
             const shell = require("viewmodels/shell");

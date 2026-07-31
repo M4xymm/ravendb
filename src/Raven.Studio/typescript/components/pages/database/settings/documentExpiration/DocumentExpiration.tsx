@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
@@ -30,10 +30,14 @@ import moment from "moment";
 import { databaseSelectors } from "components/common/shell/databaseSliceSelectors";
 import activeDatabaseTracker = require("common/shell/activeDatabaseTracker");
 import RichAlert from "components/common/RichAlert";
+import { Trans, useTranslation } from "react-i18next";
+import LanguageSwitcher from "components/common/LanguageSwitcher";
 
 export const defaultItemsToProcess = 65536;
 
 export default function DocumentExpiration() {
+    const { t } = useTranslation("documentExpiration");
+    const { t: tCommon } = useTranslation("common");
     const databaseName = useAppSelector(databaseSelectors.activeDatabaseName);
     const { databasesService } = useServices();
 
@@ -55,6 +59,20 @@ export default function DocumentExpiration() {
     const documentExpirationDocsLink = useRavenLink({ hash: "XBFEKZ" });
 
     const minPeriodForExpirationInHours = useAppSelector(licenseSelectors.statusValue("MinPeriodForExpirationInHours"));
+
+    const defaultFeatureAvailability: FeatureAvailabilityData[] = useMemo(
+        () => [
+            {
+                featureName: t(($) => $.minCheckFrequency),
+                featureIcon: "clock",
+                community: { value: 36 },
+                professional: { value: Infinity },
+                enterprise: { value: Infinity },
+            },
+        ],
+        [t]
+    );
+
     const featureAvailability = useLimitedFeatureAvailability({
         defaultFeatureAvailability,
         overwrites: [
@@ -113,7 +131,7 @@ export default function DocumentExpiration() {
                 MaxItemsToProcess: formData.isLimitMaxItemsToProcessEnabled ? formData.maxItemsToProcess : null,
             });
 
-            messagePublisher.reportSuccess("Expiration configuration saved successfully");
+            messagePublisher.reportSuccess(t(($) => $.saveSuccess));
             activeDatabaseTracker.default.database().hasExpirationConfiguration(formData.isDocumentExpirationEnabled);
 
             reset(formData);
@@ -129,7 +147,7 @@ export default function DocumentExpiration() {
 
     if (asyncGetExpirationConfiguration.status === "error") {
         return (
-            <LoadError error="Unable to load document expiration" refresh={asyncGetExpirationConfiguration.execute} />
+            <LoadError error={t(($) => $.loadError)} refresh={asyncGetExpirationConfiguration.execute} />
         );
     }
 
@@ -139,7 +157,8 @@ export default function DocumentExpiration() {
                 <Row className="gy-sm">
                     <Col>
                         <Form onSubmit={handleSubmit(onSave)} autoComplete="off">
-                            <AboutViewHeading title="Document Expiration" icon="document-expiration" />
+                            <AboutViewHeading title={t(($) => $.header)} icon="document-expiration" />
+                            <LanguageSwitcher className="mb-3" />
                             <ButtonWithSpinner
                                 type="submit"
                                 variant="primary"
@@ -148,14 +167,14 @@ export default function DocumentExpiration() {
                                 disabled={!formState.isDirty || isLimitWarningVisible}
                                 isSpinning={formState.isSubmitting}
                             >
-                                Save
+                                {tCommon(($) => $.save)}
                             </ButtonWithSpinner>
                             <Col>
                                 <Card>
                                     <Card.Body>
                                         <div className="vstack gap-2">
                                             <FormSwitch name="isDocumentExpirationEnabled" control={control}>
-                                                Enable Document Expiration
+                                                {t(($) => $.enableSwitch)}
                                             </FormSwitch>
                                             <div>
                                                 <FormSwitch
@@ -167,7 +186,7 @@ export default function DocumentExpiration() {
                                                         !formValues.isDocumentExpirationEnabled
                                                     }
                                                 >
-                                                    Set custom expiration frequency
+                                                    {t(($) => $.customFrequencySwitch)}
                                                 </FormSwitch>
                                                 <FormInput
                                                     name="deleteFrequency"
@@ -176,23 +195,24 @@ export default function DocumentExpiration() {
                                                     disabled={
                                                         formState.isSubmitting || !formValues.isDeleteFrequencyEnabled
                                                     }
-                                                    placeholder={
-                                                        minPeriodForExpirationInHours > 0
-                                                            ? `Default (${moment
-                                                                  .duration(minPeriodForExpirationInHours, "hours")
-                                                                  .asSeconds()})`
-                                                            : "Default (60)"
-                                                    }
-                                                    addon="seconds"
+                                                    placeholder={t(($) => $.frequencyPlaceholder, {
+                                                        seconds:
+                                                            minPeriodForExpirationInHours > 0
+                                                                ? moment
+                                                                      .duration(minPeriodForExpirationInHours, "hours")
+                                                                      .asSeconds()
+                                                                : 60,
+                                                    })}
+                                                    addon={tCommon(($) => $.seconds)}
                                                 />
                                                 {isLimitWarningVisible && (
                                                     <RichAlert variant="warning" className="mt-3">
-                                                        Your current license does not allow a frequency higher than{" "}
-                                                        {minPeriodForExpirationInHours} hours (
-                                                        {moment
-                                                            .duration(minPeriodForExpirationInHours, "hours")
-                                                            .asSeconds()}{" "}
-                                                        seconds)
+                                                        {t(($) => $.licenseLimitAlert, {
+                                                            hours: minPeriodForExpirationInHours,
+                                                            seconds: moment
+                                                                .duration(minPeriodForExpirationInHours, "hours")
+                                                                .asSeconds(),
+                                                        })}
                                                     </RichAlert>
                                                 )}
                                             </div>
@@ -206,7 +226,7 @@ export default function DocumentExpiration() {
                                                         !formValues.isDocumentExpirationEnabled
                                                     }
                                                 >
-                                                    Set max number of documents to process in a single run
+                                                    {t(($) => $.maxItemsSwitch)}
                                                 </FormSwitch>
                                                 <FormInput
                                                     name="maxItemsToProcess"
@@ -216,7 +236,7 @@ export default function DocumentExpiration() {
                                                         formState.isSubmitting ||
                                                         !formValues.isLimitMaxItemsToProcessEnabled
                                                     }
-                                                    addon="items"
+                                                    addon={tCommon(($) => $.items)}
                                                 />
                                             </div>
                                         </div>
@@ -229,25 +249,35 @@ export default function DocumentExpiration() {
                         <AboutViewAnchored>
                             <AccordionItemWrapper targetId="1" icon="about" color="info">
                                 <p>
-                                    When <strong>Document Expiration</strong> is enabled:
+                                    <Trans
+                                        t={t}
+                                        i18nKey={($) => $.aboutView.intro}
+                                        components={{ 1: <strong /> }}
+                                    />
                                 </p>
                                 <ul>
                                     <li>
-                                        The server scans the database at the specified <strong>frequency</strong>,
-                                        searching for documents that should be deleted.
+                                        <Trans
+                                            t={t}
+                                            i18nKey={($) => $.aboutView.scanItem}
+                                            components={{ 1: <strong /> }}
+                                        />
                                     </li>
                                     <li>
-                                        Any document that has an <code>@expires</code> metadata property whose time has
-                                        passed at the time of the scan will be removed.
+                                        <Trans
+                                            t={t}
+                                            i18nKey={($) => $.aboutView.expiresItem}
+                                            components={{ 1: <code /> }}
+                                        />
                                     </li>
                                 </ul>
 
-                                <p>Example of a document scheduled for expiration:</p>
+                                <p>{t(($) => $.aboutView.exampleLabel)}</p>
                                 <Code code={codeExample} language="javascript" />
                                 <hr />
-                                <div className="small-label mb-2">useful links</div>
+                                <div className="small-label mb-2">{tCommon(($) => $.usefulLinks)}</div>
                                 <a href={documentExpirationDocsLink} target="_blank">
-                                    <Icon icon="newtab" /> Docs - Document Expiration
+                                    <Icon icon="newtab" /> {t(($) => $.docsLink)}
                                 </a>
                             </AccordionItemWrapper>
                             <FeatureAvailabilitySummaryWrapper
@@ -292,12 +322,3 @@ const codeExample = `{
     }
 }`;
 
-const defaultFeatureAvailability: FeatureAvailabilityData[] = [
-    {
-        featureName: "Min check frequency (hrs)",
-        featureIcon: "clock",
-        community: { value: 36 },
-        professional: { value: Infinity },
-        enterprise: { value: Infinity },
-    },
-];

@@ -1,0 +1,18 @@
+{
+    "header": "Document Expiration",
+    "enableSwitch": "Enable Document Expiration",
+    "customFrequencySwitch": "Set custom expiration frequency",
+    "maxItemsSwitch": "Set max number of documents to process in a single run",
+    "frequencyPlaceholder": "Default ({{seconds}})",
+    "licenseLimitAlert": "Your current license does not allow a frequency higher than {{hours}} hours ({{seconds}} seconds)",
+    "loadError": "Unable to load document expiration",
+    "saveSuccess": "Expiration configuration saved successfully",
+    "minCheckFrequency": "Min check frequency (hrs)",
+    "docsLink": "Docs - Document Expiration",
+    "aboutView": {
+        "intro": "When <1>Document Expiration</1> is enabled:",
+        "scanItem": "The server scans the database at the specified <1>frequency</1>, searching for documents that should be deleted.",
+        "expiresItem": "Any document that has an <1>@expires</1> metadata property whose time has passed at the time of the scan will be removed.",
+        "exampleLabel": "Example of a document scheduled for expiration:"
+    }
+}

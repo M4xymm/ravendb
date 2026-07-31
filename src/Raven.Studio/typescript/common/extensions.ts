@@ -12,6 +12,7 @@ import useDirtyFlag = require("components/hooks/useDirtyFlag");
 import ConfirmDialog = require("components/common/ConfirmDialog");
 import Dialog = require("components/common/Dialog");
 import SplitView = require("components/common/splitView/SplitView");
+import LoadingView = require("components/common/LoadingView");
 
 class extensions {
     static install() {
@@ -250,10 +251,17 @@ class extensions {
                     const dialogProvider = react.createElement(Dialog.DialogProvider, null, confirmDialogProvider);
                     const dirtyFlagWrapper = react.createElement(useDirtyFlag.DirtyFlagProvider, options.dirtyFlag, dialogProvider);
 
-                    // Keep it as last wrapper
                     const reduxWrapper = react.createElement(Redux.Provider, { store: store.default } as Redux.ProviderProps, dirtyFlagWrapper);
 
-                    root.render(reduxWrapper);
+                    // Keep it as last wrapper: translations load per namespace on
+                    // demand, so a view suspends until its own file arrives.
+                    const suspenseWrapper = react.createElement(
+                        react.Suspense,
+                        { fallback: react.createElement(LoadingView.LoadingView) },
+                        reduxWrapper
+                    );
+
+                    root.render(suspenseWrapper);
                 }
             }
         }

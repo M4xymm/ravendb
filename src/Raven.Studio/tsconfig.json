@@ -87,6 +87,9 @@
             ],
             "hooks/*": [
                 "typescript/components/hooks/*"
+            ],
+            "i18n/*": [
+                "typescript/i18n/*"
             ]
         },
         "jsx": "react-jsx"

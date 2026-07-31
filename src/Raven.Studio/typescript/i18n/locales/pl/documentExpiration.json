@@ -1,0 +1,18 @@
+{
+    "header": "Wygasanie dokumentów",
+    "enableSwitch": "Włącz wygasanie dokumentów",
+    "customFrequencySwitch": "Ustaw własną częstotliwość wygasania",
+    "maxItemsSwitch": "Ustaw maksymalną liczbę dokumentów przetwarzanych w jednym przebiegu",
+    "frequencyPlaceholder": "Domyślnie ({{seconds}})",
+    "licenseLimitAlert": "Twoja licencja nie pozwala na częstotliwość większą niż {{hours}} godz. ({{seconds}} sekund)",
+    "loadError": "Nie udało się wczytać konfiguracji wygasania dokumentów",
+    "saveSuccess": "Konfiguracja wygasania została zapisana",
+    "minCheckFrequency": "Min. częstotliwość sprawdzania (godz.)",
+    "docsLink": "Dokumentacja — wygasanie dokumentów",
+    "aboutView": {
+        "intro": "Po włączeniu funkcji <1>Wygasanie dokumentów</1>:",
+        "scanItem": "Serwer skanuje bazę danych z określoną <1>częstotliwością</1>, wyszukując dokumenty przeznaczone do usunięcia.",
+        "expiresItem": "Każdy dokument z właściwością metadanych <1>@expires</1>, której czas minął w momencie skanowania, zostanie usunięty.",
+        "exampleLabel": "Przykład dokumentu zaplanowanego do wygaśnięcia:"
+    }
+}
