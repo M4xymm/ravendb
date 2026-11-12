@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Raven.Client.Documents.Operations.Backups;
-using Raven.Client.Util;
 using Raven.Server.Commercial;
-using Sparrow.Logging;
 using Sparrow.Server.Logging;
 using BackupConfiguration = Raven.Server.Config.Categories.BackupConfiguration;
 
@@ -16,9 +13,7 @@ namespace Raven.Server.Documents.PeriodicBackup
 
         private readonly LicenseManager _licenseManager;
         private readonly Dictionary<string, int> _runningBackupsPerDatabase = new();
-        private readonly TimeSpan _concurrentBackupsDelay;
         private readonly bool _skipModifications;
-        private SemaphoreSlim _concurrentDatabaseWakeup;
 
         public int MaxNumberOfConcurrentBackups { get; private set; }
 
@@ -50,8 +45,6 @@ namespace Raven.Server.Documents.PeriodicBackup
             }
 
             MaxNumberOfConcurrentBackups = numberOfCoresToUse;
-            _concurrentDatabaseWakeup = new SemaphoreSlim(numberOfCoresToUse);
-            _concurrentBackupsDelay = backupConfiguration.ConcurrentBackupsDelay.AsTimeSpan;
             _skipModifications = skipModifications;
         }
 
@@ -69,7 +62,7 @@ namespace Raven.Server.Documents.PeriodicBackup
             }
         }
 
-        public void StartBackup(string databaseName, string backupName, RavenLogger logger)
+        public void StartBackup(string databaseName, string backupName, RavenLogger logger, bool enforceLimit)
         {
             lock (_locker)
             {
@@ -79,15 +72,12 @@ namespace Raven.Server.Documents.PeriodicBackup
                     return;
                 }
 
-                if (MaxNumberOfConcurrentBackups - _runningBackupsPerDatabase.Count <= 0)
+                if (enforceLimit && MaxNumberOfConcurrentBackups - _runningBackupsPerDatabase.Count <= 0)
                 {
                     throw new BackupDelayException(
                         $"Failed to start Backup Task: '{backupName}'. " +
                         $"The task exceeds the maximum number of concurrent backup tasks configured. " +
-                        $"Current maximum number of concurrent backups is: {MaxNumberOfConcurrentBackups:#,#;;0}")
-                    {
-                        DelayPeriod = _concurrentBackupsDelay
-                    };
+                        $"Current maximum number of concurrent backups is: {MaxNumberOfConcurrentBackups:#,#;;0}");
                 }
 
                 _runningBackupsPerDatabase[databaseName] = 1;
@@ -156,18 +146,6 @@ namespace Raven.Server.Documents.PeriodicBackup
             }
         }
 
-        public IDisposable TryStartDatabaseForBackup()
-        {
-            var sm = _concurrentDatabaseWakeup;
-            if (sm.Wait(TimeSpan.Zero) == false)
-                return null;
-
-            return new DisposableAction(() =>
-            {
-                sm.Release();
-            });
-        }
-
         public void ModifyMaxConcurrentBackups()
         {
             if (_skipModifications)
@@ -182,7 +160,6 @@ namespace Raven.Server.Documents.PeriodicBackup
             lock (_locker)
             {
                 MaxNumberOfConcurrentBackups = newMaxConcurrentBackups;
-                _concurrentDatabaseWakeup = new SemaphoreSlim(newMaxConcurrentBackups);
             }
         }
 

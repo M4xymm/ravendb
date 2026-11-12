@@ -30,6 +30,7 @@ using Raven.Server.EventListener;
 using Raven.Server.Logging;
 using Raven.Server.Rachis;
 using Raven.Server.ServerWide;
+using Raven.Server.ServerWide.Backups.Policies.Server;
 using Raven.Server.ServerWide.Context;
 using Raven.Server.TrafficWatch;
 using Raven.Server.Utils;
@@ -112,7 +113,6 @@ namespace FastTests
             IgnoreProcessorAffinityChanges(ignore: true);
             RavenLogManager.Set(RavenNLogLogManager.Instance);
             LicenseManager.IgnoreCompressionLicenseLimit = true;
-            BackupUtils.IgnoreHealthChecksBeforeBackup = true;
 
             //RequestExecutor.HttpClientFactory = RavenServerHttpClientFactory.Instance;
             LicenseManager.AddLicenseStatusToLicenseLimitsException = true;
@@ -194,6 +194,8 @@ namespace FastTests
                 AllocationsLoggingIntervalInMs = configuration.DebugConfiguration.AllocationsLoggingInterval.GetValue(TimeUnit.Milliseconds),
                 AllocationsLoggingCount = configuration.DebugConfiguration.AllocationsLoggingCount
             });
+
+            ServerStartupPolicy.Disabled = true;
         }
 
         protected TestBase(ITestOutputHelper output) : base(output)
@@ -525,6 +527,18 @@ namespace FastTests
                 }
             }
 
+            private bool _ignoreHealthChecksBeforeBackup = true;
+
+            public bool IgnoreHealthChecksBeforeBackup
+            {
+                get => _ignoreHealthChecksBeforeBackup;
+                set
+                {
+                    AssertNotFrozen();
+                    _ignoreHealthChecksBeforeBackup = value;
+                }
+            }
+
             private bool _registerForDisposal = true;
 
             public bool RegisterForDisposal
@@ -589,6 +603,8 @@ namespace FastTests
                 configuration.SetSetting(RavenConfiguration.GetKey(x => x.Replication.RetryMaxTimeout), "3");
                 configuration.SetSetting(RavenConfiguration.GetKey(x => x.Cluster.AddReplicaTimeout), "10");
                 configuration.SetSetting(RavenConfiguration.GetKey(x => x.Backup.MaxNumberOfConcurrentBackups), "512");
+                configuration.SetSetting(RavenConfiguration.GetKey(x => x.Backup.DatabaseLoadedGracePeriod), "1");
+                configuration.SetSetting(RavenConfiguration.GetKey(x => x.Backup.BackupRunnerFrequency), "1");
                 configuration.SetSetting(RavenConfiguration.GetKey(x => x.Indexing.AutoIndexingEngineType), nameof(SearchEngineType.Lucene));
                 configuration.SetSetting(RavenConfiguration.GetKey(x => x.Indexing.StaticIndexingEngineType), nameof(SearchEngineType.Lucene));
 
@@ -652,6 +668,9 @@ namespace FastTests
                 {
                     if (options.BeforeDatabasesStartup != null)
                         server.ServerStore.DatabasesLandlord.ForTestingPurposesOnly().BeforeHandleClusterDatabaseChanged = options.BeforeDatabasesStartup;
+
+                    if (options.IgnoreHealthChecksBeforeBackup)
+                        server.ServerStore.ForTestingPurposesOnly().IgnoreHealthChecksBeforeBackup = true;
 
                     if (options.ReservedSockets != null)
                     {
